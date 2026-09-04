@@ -104,6 +104,12 @@ que da el monte.
 👉 **[docs/AMPLIAR.md](docs/AMPLIAR.md)** — guía completa: tipos de objetivo,
 dónde se toca cada cosa y las perillas de equilibrio.
 
+Y la historia que se está escribiendo aquí no es inventada: sale de recuerdos
+reales. Lo que hay hoy en `capitulos.js` es un andamio hasta que lleguen.
+
+👉 **[docs/RECUERDOS.md](docs/RECUERDOS.md)** — dónde volcarlos, y qué parte del
+juego toca cada cosa que se cuente.
+
 ---
 
 ## Publicarlo en internet
