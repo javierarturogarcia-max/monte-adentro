@@ -20,6 +20,7 @@ entero en un solo archivo, sin ninguna dependencia externa).
 | Agacharse | C o Ctrl | B | — |
 | Interactuar | E o Enter | X | botón ✋ |
 | Acción / minijuego | Espacio | A | botón ⚡ |
+| Mapa del valle | Q | — | botón 🗺️ |
 | Canasta · Diario · Pausa | I · J · Esc | Y · Start | botones de arriba |
 | Segunda y tercera opción | 1, 2, 3 | — | tocar la opción |
 
@@ -76,7 +77,7 @@ src/
     mundo3d.js              convierte la simulación en instancias que dibujar
     personaje.js            el niño, animado por piezas
   ui/
-    hud.js  paneles.js  dialogo.js  minijuegos.js  tacto.js  base.js
+    hud.js  mapa.js  paneles.js  dialogo.js  minijuegos.js  tacto.js  base.js
 test/
   reglas.test.js            43 pruebas de las reglas
   mundo.test.js             25 pruebas del valle y del motor
@@ -205,6 +206,7 @@ el reloj, comprobar el capítulo).
 | Probabilidad de lluvia por mes | `src/mundo/clima.js`, `LLUVIA_MES` |
 | Dificultad de la caza | `src/mundo/fauna.js` (`radioVista`, `olfato`) y `src/reglas/caza.js` |
 | Densidad del monte | `src/mundo/dispersion.js`, `FLORA` y `repartir(t, { densidad })` |
+| Volumen y mezcla del sonido | `src/nucleo/audio.js` (`ambiente()` y cada golpe) |
 | Sitio de la casa, la milpa y la poza | `src/mundo/terreno.js`, `LUGARES` |
 
 ---

@@ -188,6 +188,8 @@ export class Mundo3D {
     }
     this.lotePerro = esc.lote('perro', MOD.perro(semillaFija('perro', 0)), { capacidad: 2 });
     this.loteSenal = esc.lote('senal', MOD.senal(), { capacidad: 8, sombra: false });
+    this.loteAnillo = esc.lote('anillo', MOD.anillo(1, 0.1, 30),
+      { categoria: 'translucido', sombra: false, capacidad: 8 });
     this.loteQuad = esc.lote('particulas', MOD.quad(), { categoria: 'translucido', sombra: false, capacidad: 900 });
     this.loteQuad.comoCartel();
     this.loteFuego = esc.lote('fuego', MOD.quad(), { categoria: 'translucido', sombra: false, capacidad: 60 });
@@ -241,6 +243,21 @@ export class Mundo3D {
     const bote = Math.abs(Math.sin(perro.fase)) * 0.05;
     this.lotePerro.agregar(componer([perro.x, perro.y + bote, perro.z],
       [0, -perro.rumbo + Math.PI / 2, 0], 1, this.m));
+  }
+
+  /**
+   * Marca en el suelo lo que esta al alcance. Late despacio para que se note
+   * sin llamar la atencion mas que el propio monte.
+   */
+  emitirAlcance(objetivos) {
+    this.loteAnillo.reiniciar();
+    for (const o of objetivos || []) {
+      const y = this.terreno.altura(o.x, o.z) + 0.06;
+      const pulso = 1 + Math.sin(this.tiempo * 2.6) * 0.06;
+      this.loteAnillo.agregar(
+        componer([o.x, y, o.z], [0, this.tiempo * 0.5, 0], (o.radio || 0.85) * pulso, this.m),
+        o.color || [1, 0.78, 0.35], 0.5 + Math.sin(this.tiempo * 2.6) * 0.12, 0, 1.6, 0);
+    }
   }
 
   emitirSenales(marcadores) {
@@ -340,6 +357,22 @@ export class Mundo3D {
       this.chispas.push({
         x, y, z, vx: (Math.random() - 0.5) * 2.5, vy: 1.5 + Math.random() * 2.5,
         vz: (Math.random() - 0.5) * 2.5, vida: 0.7,
+        color: [0.85, 0.93, 0.98], tam: 0.09,
+      });
+    }
+  }
+
+  /**
+   * Polvo del pie. Es un detalle diminuto y es de las cosas que mas hacen que
+   * andar se sienta: sin el, el nino patina sobre el terreno.
+   */
+  polvo(x, y, z, n = 3) {
+    for (let k = 0; k < n; k++) {
+      this.chispas.push({
+        x: x + (Math.random() - 0.5) * 0.25, y: y + 0.04, z: z + (Math.random() - 0.5) * 0.25,
+        vx: (Math.random() - 0.5) * 0.5, vy: 0.35 + Math.random() * 0.5,
+        vz: (Math.random() - 0.5) * 0.5, vida: 0.45 + Math.random() * 0.25,
+        color: [0.62, 0.54, 0.42], tam: 0.16, flota: true,
       });
     }
   }
@@ -349,10 +382,12 @@ export class Mundo3D {
       const c = this.chispas[i];
       c.vida -= dt;
       if (c.vida <= 0) { this.chispas.splice(i, 1); continue; }
-      c.vy -= 9.8 * dt;
+      // El polvo flota y se expande; la salpicadura cae.
+      c.vy -= (c.flota ? 0.9 : 9.8) * dt;
       c.x += c.vx * dt; c.y += c.vy * dt; c.z += c.vz * dt;
-      this.loteQuad.agregar(componer([c.x, c.y, c.z], [0, 0, 0], 0.09, this.m),
-        [0.85, 0.93, 0.98], limitar(c.vida, 0, 1) * 0.8, 0, 0, 0);
+      const tam = (c.tam || 0.09) * (c.flota ? 1 + (0.7 - c.vida) * 1.6 : 1);
+      this.loteQuad.agregar(componer([c.x, c.y, c.z], [0, 0, 0], tam, this.m),
+        c.color || [0.85, 0.93, 0.98], limitar(c.vida, 0, 1) * (c.flota ? 0.32 : 0.8), 0, 0, 0);
     }
   }
 }

@@ -135,6 +135,34 @@ html, body {
 #carga { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--j-hueso-2); }
 #carga.pasado { color: var(--j-rojo); font-weight: 600; }
 
+/* --------------------------------------------------------------- mapa */
+#mapa {
+  position: absolute; right: max(14px, env(safe-area-inset-right));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  padding: 7px; line-height: 0; cursor: pointer;
+  transition: transform var(--j-suave), box-shadow var(--j-suave);
+}
+#mapa:hover { transform: translateY(-2px); }
+#mapa canvas { display: block; border-radius: 10px; }
+#mapa .mapa-rotulo {
+  position: absolute; top: 12px; left: 13px; line-height: 1;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+  color: var(--j-hueso); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+/* Centrado con inset+margin en vez de translate: no depende de que el
+   porcentaje del transform se resuelva contra la caja del propio elemento. */
+#mapa.abierto {
+  inset: 0; margin: auto;
+  width: fit-content; height: fit-content;
+  transform: none; padding: 12px; z-index: 35;
+}
+#mapa.abierto:hover { transform: none; }
+#mapa.abierto .mapa-rotulo {
+  top: auto; bottom: 14px; left: 0; right: 0; text-align: center;
+  font-size: 11px; letter-spacing: 0.06em; color: var(--j-hueso-2);
+}
+
 /* ------------------------------------------------------------- aviso */
 #aviso {
   position: absolute; left: 50%; bottom: 22%; transform: translateX(-50%);
@@ -392,6 +420,8 @@ html, body {
 .oculto { display: none !important; }
 
 @media (max-width: 720px) {
+  #mapa { padding: 5px; bottom: auto; top: 76px; }
+  #mapa canvas { width: 104px; height: 104px; }
   #objetivos { width: min(230px, 52vw); padding: 10px 12px; }
   #objetivos li { font-size: 11px; }
   #necesidades { width: min(168px, 44vw); padding: 9px 11px; }
@@ -4304,6 +4334,26 @@ function cordillera(radio, altura, semilla = 1, color = [0.30, 0.38, 0.42]) {
   });
 }
 
+/**
+ * Anillo plano que se posa en el suelo. Marca lo que el nino tiene al alcance:
+ * sin esto hay que adivinar a que distancia responde cada cosa, que es de lo
+ * que mas cansa al empezar a jugar.
+ */
+function anillo(radio = 1, grosor = 0.12, lados = 32) {
+  return construir('anillo', (c) => {
+    const dentro = radio - grosor / 2, fuera = radio + grosor / 2;
+    for (let i = 0; i < lados; i++) {
+      const a0 = (i / lados) * TAU, a1 = ((i + 1) / lados) * TAU;
+      const base = c.vertices;
+      c.vertice([Math.cos(a0) * dentro, 0, Math.sin(a0) * dentro], [0, 1, 0], [1, 1, 1], 0);
+      c.vertice([Math.cos(a1) * dentro, 0, Math.sin(a1) * dentro], [0, 1, 0], [1, 1, 1], 0);
+      c.vertice([Math.cos(a1) * fuera, 0, Math.sin(a1) * fuera], [0, 1, 0], [1, 1, 1], 0);
+      c.vertice([Math.cos(a0) * fuera, 0, Math.sin(a0) * fuera], [0, 1, 0], [1, 1, 1], 0);
+      c.quad(base, base + 1, base + 2, base + 3);
+    }
+  });
+}
+
 /** Cuadrilatero unitario: lo usan lluvia, chispas y sombras de contacto. */
 function quad() {
   return construir('quad', (c) => {
@@ -4346,6 +4396,7 @@ function quad() {
   __exp.piezasNino = piezasNino;
   __exp.herramientas = herramientas;
   __exp.cordillera = cordillera;
+  __exp.anillo = anillo;
   __exp.quad = quad;
 });
 
@@ -4780,6 +4831,8 @@ class Mundo3D {
     }
     this.lotePerro = esc.lote('perro', MOD.perro(semillaFija('perro', 0)), { capacidad: 2 });
     this.loteSenal = esc.lote('senal', MOD.senal(), { capacidad: 8, sombra: false });
+    this.loteAnillo = esc.lote('anillo', MOD.anillo(1, 0.1, 30),
+      { categoria: 'translucido', sombra: false, capacidad: 8 });
     this.loteQuad = esc.lote('particulas', MOD.quad(), { categoria: 'translucido', sombra: false, capacidad: 900 });
     this.loteQuad.comoCartel();
     this.loteFuego = esc.lote('fuego', MOD.quad(), { categoria: 'translucido', sombra: false, capacidad: 60 });
@@ -4833,6 +4886,21 @@ class Mundo3D {
     const bote = Math.abs(Math.sin(perro.fase)) * 0.05;
     this.lotePerro.agregar(componer([perro.x, perro.y + bote, perro.z],
       [0, -perro.rumbo + Math.PI / 2, 0], 1, this.m));
+  }
+
+  /**
+   * Marca en el suelo lo que esta al alcance. Late despacio para que se note
+   * sin llamar la atencion mas que el propio monte.
+   */
+  emitirAlcance(objetivos) {
+    this.loteAnillo.reiniciar();
+    for (const o of objetivos || []) {
+      const y = this.terreno.altura(o.x, o.z) + 0.06;
+      const pulso = 1 + Math.sin(this.tiempo * 2.6) * 0.06;
+      this.loteAnillo.agregar(
+        componer([o.x, y, o.z], [0, this.tiempo * 0.5, 0], (o.radio || 0.85) * pulso, this.m),
+        o.color || [1, 0.78, 0.35], 0.5 + Math.sin(this.tiempo * 2.6) * 0.12, 0, 1.6, 0);
+    }
   }
 
   emitirSenales(marcadores) {
@@ -4932,6 +5000,22 @@ class Mundo3D {
       this.chispas.push({
         x, y, z, vx: (Math.random() - 0.5) * 2.5, vy: 1.5 + Math.random() * 2.5,
         vz: (Math.random() - 0.5) * 2.5, vida: 0.7,
+        color: [0.85, 0.93, 0.98], tam: 0.09,
+      });
+    }
+  }
+
+  /**
+   * Polvo del pie. Es un detalle diminuto y es de las cosas que mas hacen que
+   * andar se sienta: sin el, el nino patina sobre el terreno.
+   */
+  polvo(x, y, z, n = 3) {
+    for (let k = 0; k < n; k++) {
+      this.chispas.push({
+        x: x + (Math.random() - 0.5) * 0.25, y: y + 0.04, z: z + (Math.random() - 0.5) * 0.25,
+        vx: (Math.random() - 0.5) * 0.5, vy: 0.35 + Math.random() * 0.5,
+        vz: (Math.random() - 0.5) * 0.5, vida: 0.45 + Math.random() * 0.25,
+        color: [0.62, 0.54, 0.42], tam: 0.16, flota: true,
       });
     }
   }
@@ -4941,10 +5025,12 @@ class Mundo3D {
       const c = this.chispas[i];
       c.vida -= dt;
       if (c.vida <= 0) { this.chispas.splice(i, 1); continue; }
-      c.vy -= 9.8 * dt;
+      // El polvo flota y se expande; la salpicadura cae.
+      c.vy -= (c.flota ? 0.9 : 9.8) * dt;
       c.x += c.vx * dt; c.y += c.vy * dt; c.z += c.vz * dt;
-      this.loteQuad.agregar(componer([c.x, c.y, c.z], [0, 0, 0], 0.09, this.m),
-        [0.85, 0.93, 0.98], limitar(c.vida, 0, 1) * 0.8, 0, 0, 0);
+      const tam = (c.tam || 0.09) * (c.flota ? 1 + (0.7 - c.vida) * 1.6 : 1);
+      this.loteQuad.agregar(componer([c.x, c.y, c.z], [0, 0, 0], tam, this.m),
+        c.color || [0.85, 0.93, 0.98], limitar(c.vida, 0, 1) * (c.flota ? 0.32 : 0.8), 0, 0, 0);
     }
   }
 }
@@ -5423,6 +5509,339 @@ class Entrada {
 }
 
   __exp.Entrada = Entrada;
+});
+
+__def("src/nucleo/audio.js", function (__exp, __req) {
+/**
+ * audio.js — Todo el sonido del juego, sintetizado.
+ *
+ * No hay ni un archivo de audio, igual que no hay ni un archivo de arte: el
+ * rio, el viento, los pasos, los grillos y el hacha se fabrican con
+ * osciladores y ruido filtrado en el momento. Ocupa cero bytes de descarga y
+ * suena distinto cada vez, que es justo lo que le falta a un bucle grabado.
+ *
+ * La capa de ambiente son tres lechos que suben y bajan de volumen segun donde
+ * este el nino y que hora sea (rio, viento, bicheria), y encima van los golpes
+ * sueltos de cada accion.
+ *
+ * Los navegadores no dejan sonar nada hasta que la persona toca la pagina, asi
+ * que el contexto se crea dormido y se despierta con el primer clic o tecla.
+ */
+const { limitar, mezclar } = __req("src/nucleo/mate.js");
+
+class Audio {
+  constructor(op = {}) {
+    this.activo = false;
+    this.volumen = op.volumen ?? 0.75;
+    this.ctx = null;
+    this.lechos = {};
+    this.ultimoPaso = 0;
+    this.silenciado = false;
+  }
+
+  /** Se llama en el primer gesto del usuario: antes, el navegador no deja. */
+  despertar() {
+    if (this.ctx) {
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      return true;
+    }
+    const Contexto = window.AudioContext || window.webkitAudioContext;
+    if (!Contexto) return false;
+    try {
+      this.ctx = new Contexto();
+    } catch { return false; }
+
+    this.maestro = this.ctx.createGain();
+    this.maestro.gain.value = this.silenciado ? 0 : this.volumen;
+    // Un compresor suave evita que la lluvia mas un trueno saturen.
+    this.limitador = this.ctx.createDynamicsCompressor();
+    this.limitador.threshold.value = -12;
+    this.limitador.ratio.value = 6;
+    this.limitador.attack.value = 0.004;
+    this.limitador.release.value = 0.18;
+    this.maestro.connect(this.limitador).connect(this.ctx.destination);
+
+    this.ruido = this._bufferRuido(3);
+    this._montarLechos();
+    this.activo = true;
+    return true;
+  }
+
+  /** Ruido rosa: suena a naturaleza; el blanco suena a television vieja. */
+  _bufferRuido(segundos) {
+    const n = Math.floor(this.ctx.sampleRate * segundos);
+    const buffer = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
+    const datos = buffer.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < n; i++) {
+      const blanco = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + blanco * 0.0555179;
+      b1 = 0.99332 * b1 + blanco * 0.0750759;
+      b2 = 0.96900 * b2 + blanco * 0.1538520;
+      b3 = 0.86650 * b3 + blanco * 0.3104856;
+      b4 = 0.55000 * b4 + blanco * 0.5329522;
+      b5 = -0.7616 * b5 - blanco * 0.0168980;
+      datos[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + blanco * 0.5362) * 0.11;
+      b6 = blanco * 0.115926;
+    }
+    return buffer;
+  }
+
+  /** Un lecho continuo: ruido en bucle a traves de un filtro, con su volumen. */
+  _lecho(tipo, frecuencia, Q, ganancia = 0) {
+    const fuente = this.ctx.createBufferSource();
+    fuente.buffer = this.ruido;
+    fuente.loop = true;
+    const filtro = this.ctx.createBiquadFilter();
+    filtro.type = tipo;
+    filtro.frequency.value = frecuencia;
+    filtro.Q.value = Q;
+    const vol = this.ctx.createGain();
+    vol.gain.value = ganancia;
+    fuente.connect(filtro).connect(vol).connect(this.maestro);
+    fuente.start();
+    return { fuente, filtro, vol };
+  }
+
+  _montarLechos() {
+    // Rio: agua corriendo, grave y constante.
+    this.lechos.rio = this._lecho('bandpass', 620, 0.7);
+    // Viento: soplo ancho que se mueve con la fuerza del viento.
+    this.lechos.viento = this._lecho('lowpass', 480, 0.5);
+    // Lluvia: mas aguda que el rio, y con cuerpo cuando arrecia.
+    this.lechos.lluvia = this._lecho('highpass', 1100, 0.6);
+    this.lechos.aguacero = this._lecho('bandpass', 380, 0.4);
+  }
+
+  /**
+   * Ajusta el ambiente. Se llama unas pocas veces por segundo, no cada cuadro.
+   * @param {object} e {distanciaRio, viento, lluvia, hora, dentroAgua, bajoTecho}
+   */
+  ambiente(e) {
+    if (!this.activo) return;
+    const t = this.ctx.currentTime;
+    const suave = (nodo, valor, tiempo = 0.4) => {
+      nodo.gain.cancelScheduledValues(t);
+      nodo.gain.setTargetAtTime(valor, t, tiempo / 3);
+    };
+    const techo = e.bajoTecho ? 0.45 : 1;
+
+    // El rio se oye desde lejos y crece al acercarse.
+    const cercaRio = 1 - limitar((e.distanciaRio ?? 999) / 45, 0, 1);
+    suave(this.lechos.rio.vol, cercaRio ** 1.8 * 0.34 * techo);
+    this.lechos.rio.filtro.frequency.setTargetAtTime(
+      mezclar(430, 780, cercaRio), t, 0.5);
+
+    const viento = limitar(e.viento ?? 0.2, 0, 1.4);
+    suave(this.lechos.viento.vol, (0.035 + viento * 0.13) * techo);
+    this.lechos.viento.filtro.frequency.setTargetAtTime(mezclar(320, 900, viento), t, 0.6);
+
+    const lluvia = limitar(e.lluvia ?? 0, 0, 1);
+    suave(this.lechos.lluvia.vol, lluvia * 0.22 * (e.bajoTecho ? 0.7 : 1));
+    suave(this.lechos.aguacero.vol, Math.max(0, lluvia - 0.45) * 0.3 * techo);
+
+    this._programarBichos(e);
+  }
+
+  /**
+   * Pajaros de dia, grillos de noche. Se programan de uno en uno con pausas
+   * irregulares: un bucle de chirridos se delata en diez segundos.
+   */
+  _programarBichos(e) {
+    const ahora = this.ctx.currentTime;
+    if (this.proximoBicho && ahora < this.proximoBicho) return;
+    const hora = e.hora ?? 12;
+    const noche = hora < 5.2 || hora > 18.9;
+    const callado = (e.lluvia ?? 0) > 0.5;
+    this.proximoBicho = ahora + (callado ? 4 : mezclar(0.5, 2.6, Math.random()));
+    if (callado || e.bajoTecho) return;
+
+    if (noche) this.grillo();
+    else if (Math.random() < 0.75) this.pajaro();
+  }
+
+  // ------------------------------------------------------------ golpes sueltos
+  /** Envolvente corta sobre un oscilador. */
+  _tono({ frecuencia = 440, tipo = 'sine', duracion = 0.18, ganancia = 0.2,
+    caidaFrecuencia = 0, retraso = 0, vibrato = 0 } = {}) {
+    if (!this.activo) return;
+    const t = this.ctx.currentTime + retraso;
+    const osc = this.ctx.createOscillator();
+    osc.type = tipo;
+    osc.frequency.setValueAtTime(frecuencia, t);
+    if (caidaFrecuencia) {
+      osc.frequency.exponentialRampToValueAtTime(
+        Math.max(20, frecuencia + caidaFrecuencia), t + duracion);
+    }
+    if (vibrato) {
+      const lfo = this.ctx.createOscillator();
+      const lfoG = this.ctx.createGain();
+      lfo.frequency.value = 7;
+      lfoG.gain.value = vibrato;
+      lfo.connect(lfoG).connect(osc.frequency);
+      lfo.start(t); lfo.stop(t + duracion + 0.05);
+    }
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(ganancia, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + duracion);
+    osc.connect(g).connect(this.maestro);
+    osc.start(t);
+    osc.stop(t + duracion + 0.05);
+  }
+
+  /** Rafaga de ruido filtrado: pasos, chapoteos, hachazos. */
+  _rafaga({ frecuencia = 900, Q = 1, duracion = 0.16, ganancia = 0.2,
+    tipo = 'bandpass', caida = 0, retraso = 0 } = {}) {
+    if (!this.activo) return;
+    const t = this.ctx.currentTime + retraso;
+    const fuente = this.ctx.createBufferSource();
+    fuente.buffer = this.ruido;
+    fuente.loop = true;
+    // Empezar en un punto al azar del buffer: si no, todos los pasos son igual.
+    const filtro = this.ctx.createBiquadFilter();
+    filtro.type = tipo;
+    filtro.frequency.setValueAtTime(frecuencia, t);
+    if (caida) filtro.frequency.exponentialRampToValueAtTime(Math.max(60, frecuencia + caida), t + duracion);
+    filtro.Q.value = Q;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(ganancia, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + duracion);
+    fuente.connect(filtro).connect(g).connect(this.maestro);
+    fuente.start(t, Math.random() * 2.5);
+    fuente.stop(t + duracion + 0.05);
+  }
+
+  /**
+   * Un paso. El suelo cambia el sonido: la tierra seca cruje, el pasto susurra,
+   * el agua chapotea y la piedra suena dura.
+   */
+  paso(suelo = 'tierra', fuerte = false) {
+    const perfiles = {
+      tierra: { frecuencia: 380, Q: 1.1, duracion: 0.11, ganancia: 0.13, caida: -160 },
+      pasto:  { frecuencia: 1500, Q: 0.8, duracion: 0.13, ganancia: 0.09, caida: -700 },
+      agua:   { frecuencia: 900, Q: 0.6, duracion: 0.22, ganancia: 0.16, caida: -420 },
+      piedra: { frecuencia: 620, Q: 2.4, duracion: 0.09, ganancia: 0.14, caida: -220 },
+      madera: { frecuencia: 300, Q: 3, duracion: 0.1, ganancia: 0.12, caida: -90 },
+    };
+    const p = perfiles[suelo] || perfiles.tierra;
+    const variacion = mezclar(0.85, 1.2, Math.random());
+    this._rafaga({ ...p, frecuencia: p.frecuencia * variacion,
+      ganancia: p.ganancia * (fuerte ? 1.5 : 1) });
+  }
+
+  chapoteo(fuerza = 1) {
+    this._rafaga({ frecuencia: 1200, Q: 0.5, duracion: 0.3 * fuerza, ganancia: 0.2 * fuerza, caida: -900 });
+    this._rafaga({ frecuencia: 300, Q: 0.8, duracion: 0.22 * fuerza, ganancia: 0.12 * fuerza, retraso: 0.02 });
+  }
+
+  hachazo(bueno = true) {
+    this._rafaga({ frecuencia: bueno ? 240 : 400, Q: 2.2, duracion: 0.16, ganancia: 0.26, caida: -120 });
+    this._tono({ frecuencia: bueno ? 120 : 180, tipo: 'triangle', duracion: 0.2,
+      ganancia: 0.14, caidaFrecuencia: -60 });
+    if (bueno) this._rafaga({ frecuencia: 2600, Q: 1, duracion: 0.09, ganancia: 0.07, retraso: 0.01 });
+  }
+
+  /** La piedra de la hondilla saliendo. */
+  tiro() {
+    this._rafaga({ frecuencia: 1800, Q: 0.7, duracion: 0.14, ganancia: 0.15, caida: -1400 });
+  }
+
+  /** El anzuelo entrando al agua y el carrete. */
+  lance() {
+    this._rafaga({ frecuencia: 2400, Q: 0.6, duracion: 0.22, ganancia: 0.1, caida: -1900 });
+    this.chapoteo(0.5);
+  }
+
+  carrete(intensidad = 1) {
+    const ahora = this.ctx ? this.ctx.currentTime : 0;
+    if (this.ultimoCarrete && ahora - this.ultimoCarrete < 0.11) return;
+    this.ultimoCarrete = ahora;
+    this._rafaga({ frecuencia: mezclar(900, 1900, intensidad), Q: 6, duracion: 0.07,
+      ganancia: 0.06 + intensidad * 0.05 });
+  }
+
+  picada() {
+    this._tono({ frecuencia: 640, tipo: 'sine', duracion: 0.1, ganancia: 0.16 });
+    this._tono({ frecuencia: 880, tipo: 'sine', duracion: 0.14, ganancia: 0.14, retraso: 0.09 });
+  }
+
+  recoger() {
+    this._tono({ frecuencia: 520, tipo: 'triangle', duracion: 0.12, ganancia: 0.13, caidaFrecuencia: 240 });
+  }
+
+  soltarAgua() {
+    this._rafaga({ frecuencia: 700, Q: 0.7, duracion: 0.5, ganancia: 0.14, caida: -430 });
+  }
+
+  /** Subir de nivel: tres notas que suben, sin estridencia. */
+  logro() {
+    [523.25, 659.25, 783.99].forEach((f, i) => {
+      this._tono({ frecuencia: f, tipo: 'triangle', duracion: 0.5, ganancia: 0.13, retraso: i * 0.11 });
+    });
+  }
+
+  aviso(bueno = true) {
+    this._tono({ frecuencia: bueno ? 660 : 220, tipo: 'sine', duracion: 0.14,
+      ganancia: 0.1, caidaFrecuencia: bueno ? 120 : -60 });
+  }
+
+  clic() {
+    this._rafaga({ frecuencia: 2200, Q: 3, duracion: 0.045, ganancia: 0.07 });
+  }
+
+  pajaro() {
+    const base = mezclar(1700, 3100, Math.random());
+    const notas = 1 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < notas; i++) {
+      this._tono({ frecuencia: base * mezclar(0.9, 1.25, Math.random()), tipo: 'sine',
+        duracion: 0.09, ganancia: 0.035, caidaFrecuencia: mezclar(-400, 700, Math.random()),
+        retraso: i * 0.11, vibrato: 30 });
+    }
+  }
+
+  grillo() {
+    const base = mezclar(3400, 4400, Math.random());
+    for (let i = 0; i < 3; i++) {
+      this._rafaga({ frecuencia: base, Q: 22, duracion: 0.035, ganancia: 0.03, retraso: i * 0.06 });
+    }
+  }
+
+  trueno(lejos = 0.5) {
+    this._rafaga({ frecuencia: mezclar(90, 260, 1 - lejos), Q: 0.4,
+      duracion: mezclar(1.6, 0.7, lejos), ganancia: mezclar(0.34, 0.12, lejos), caida: -60 });
+  }
+
+  fuego() {
+    if (Math.random() < 0.5) {
+      this._rafaga({ frecuencia: mezclar(700, 2200, Math.random()), Q: 3,
+        duracion: 0.05, ganancia: 0.04 });
+    }
+  }
+
+  // -------------------------------------------------------------- ajustes
+  silenciar(si) {
+    this.silenciado = si;
+    if (this.maestro) {
+      this.maestro.gain.setTargetAtTime(si ? 0 : this.volumen, this.ctx.currentTime, 0.1);
+    }
+  }
+
+  ponerVolumen(v) {
+    this.volumen = limitar(v, 0, 1);
+    if (this.maestro && !this.silenciado) {
+      this.maestro.gain.setTargetAtTime(this.volumen, this.ctx.currentTime, 0.1);
+    }
+  }
+
+  destruir() {
+    try { this.ctx?.close(); } catch { /* ya estaba cerrado */ }
+    this.activo = false;
+  }
+}
+
+  __exp.Audio = Audio;
 });
 
 __def("src/reglas/necesidades.js", function (__exp, __req) {
@@ -6112,7 +6531,7 @@ function partidaNueva(op = {}) {
     capitulos: { activo: null, hechos: [], vistos: [] },
     contadores: contadoresNuevos(),
     diario: [],                      // sucesos del dia, para el resumen nocturno
-    ajustes: { motor: 'auto', sombras: true, calidad: 'alta', musica: true, tacto: 'auto' },
+    ajustes: { motor: 'auto', sombras: true, calidad: 'alta', sonido: true, volumen: 0.75, tacto: 'auto' },
   };
 }
 
@@ -8187,6 +8606,16 @@ class Paneles {
       el('div', { clase: 'nota', estilo: 'margin-bottom:14px',
         texto: `Motor gráfico: ${d.motor}. Partida guardada automáticamente al terminar cada día.` }),
       el('div', { clase: 'fila-botones' }, [
+        boton(a.sonido === false ? '🔇 Sonido: no' : '🔊 Sonido: sí', {
+          alPulsar: () => { this.acciones.alAjustar?.('sonido', a.sonido === false); this.abrir('pausa', this.datos); } }),
+        boton(`Volumen: ${Math.round((a.volumen ?? 0.75) * 100)}%`, {
+          alPulsar: () => {
+            const paso = { 0.25: 0.5, 0.5: 0.75, 0.75: 1, 1: 0.25 };
+            this.acciones.alAjustar?.('volumen', paso[a.volumen ?? 0.75] ?? 0.75);
+            this.abrir('pausa', this.datos);
+          } }),
+      ]),
+      el('div', { clase: 'fila-botones' }, [
         boton(a.sombras ? 'Sombras: sí' : 'Sombras: no', { alPulsar: () => { this.acciones.alAjustar?.('sombras', !a.sombras); this.abrir('pausa', this.datos); } }),
         boton(`Calidad: ${a.calidad}`, { alPulsar: () => { this.acciones.alAjustar?.('calidad', a.calidad === 'alta' ? 'media' : a.calidad === 'media' ? 'baja' : 'alta'); this.abrir('pausa', this.datos); } }),
         boton(`Motor: ${a.motor}`, { alPulsar: () => { this.acciones.alAjustar?.('motor', a.motor === 'auto' ? 'webgl2' : a.motor === 'webgl2' ? 'webgpu' : 'auto'); this.abrir('pausa', this.datos); } }),
@@ -8574,6 +9003,200 @@ class Tacto {
   __exp.Tacto = Tacto;
 });
 
+__def("src/ui/mapa.js", function (__exp, __req) {
+/**
+ * mapa.js — El mapa del valle, dibujado del propio terreno.
+ *
+ * No es una imagen: se recorre el relieve una sola vez al arrancar y se pinta
+ * pixel a pixel con el mismo color que tiene el suelo en el juego, con un
+ * sombreado de relieve para que se lean las lomas. Encima van los sitios de
+ * siempre (la casa, la milpa, la poza), el nino con su cono de vision y la
+ * bandera del objetivo.
+ *
+ * Va siempre con el norte arriba: girar el mapa con la camara marea y hace
+ * imposible acordarse de donde queda nada, que es justo lo que se quiere
+ * conseguir aqui.
+ */
+const { el } = __req("src/ui/base.js");
+const { limitar } = __req("src/nucleo/mate.js");
+const { LUGARES, NIVEL_AGUA } = __req("src/mundo/terreno.js");
+
+const PASO = 2;          // metros por muestra al generar el mapa
+const LADO = 168;        // pixeles del mapa pequeno
+
+const SITIOS = [
+  { clave: 'casa', icono: '🏠', nombre: 'la casa' },
+  { clave: 'milpa', icono: '🌽', nombre: 'la milpa' },
+  { clave: 'poza', icono: '💧', nombre: 'la poza' },
+  { clave: 'fogon', icono: '🔥', nombre: null },   // pegado a la casa: sin rotulo
+  { clave: 'monte', icono: '🌲', nombre: 'el monte' },
+];
+
+class Mapa {
+  constructor(raiz, terreno) {
+    this.terreno = terreno;
+    this.abierto = false;
+
+    this.lienzo = el('canvas', { id: 'mapa-lienzo' });
+    this.lienzo.width = LADO;
+    this.lienzo.height = LADO;
+    this.ctx = this.lienzo.getContext('2d');
+    this.rotulo = el('div', { clase: 'mapa-rotulo', texto: 'N' });
+    this.caja = el('div', { clase: 'tarjeta', id: 'mapa' }, [this.lienzo, this.rotulo]);
+    this.caja.addEventListener('click', () => this.alternar());
+    raiz.appendChild(this.caja);
+
+    this.base = this._dibujarValle();
+  }
+
+  /** Recorre el terreno una vez y deja el valle pintado en un lienzo aparte. */
+  _dibujarValle() {
+    const t = this.terreno;
+    const n = Math.round(t.lado / PASO);
+    const base = document.createElement('canvas');
+    base.width = n; base.height = n;
+    const ctx = base.getContext('2d');
+    const img = ctx.createImageData(n, n);
+
+    for (let j = 0; j < n; j++) {
+      for (let i = 0; i < n; i++) {
+        const x = -t.mitad + i * PASO;
+        const z = -t.mitad + j * PASO;
+        const h = t.altura(x, z);
+        let r, g, b;
+        if (h < NIVEL_AGUA) {
+          // El agua se dibuja mas oscura cuanto mas honda: se ve el cauce.
+          const prof = limitar((NIVEL_AGUA - h) / 5, 0, 1);
+          r = 0.30 - prof * 0.16; g = 0.52 - prof * 0.22; b = 0.62 - prof * 0.18;
+        } else {
+          const c = t.colorSuelo(x, z, h);
+          // Sombreado de relieve: luz desde el noroeste, como en los mapas.
+          const dx = t.altura(x + PASO, z) - t.altura(x - PASO, z);
+          const dz = t.altura(x, z + PASO) - t.altura(x, z - PASO);
+          const luz = limitar(0.72 + (-dx * 0.5 - dz * 0.5) * 0.12, 0.35, 1.35);
+          r = c[0] * luz; g = c[1] * luz; b = c[2] * luz;
+        }
+        const o = (j * n + i) * 4;
+        img.data[o] = limitar(r, 0, 1) * 255;
+        img.data[o + 1] = limitar(g, 0, 1) * 255;
+        img.data[o + 2] = limitar(b, 0, 1) * 255;
+        img.data[o + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    return base;
+  }
+
+  /** Mundo -> pixel del mapa que se ve. */
+  _aPantalla(x, z, lado) {
+    const t = this.terreno;
+    return [
+      ((x + t.mitad) / t.lado) * lado,
+      ((z + t.mitad) / t.lado) * lado,
+    ];
+  }
+
+  /**
+   * @param {object} e {jugador, camara, marcadores, hora, animales}
+   */
+  actualizar(e) {
+    const lado = this.lienzo.width;
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, lado, lado);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(this.base, 0, 0, lado, lado);
+
+    // De noche el mapa se apaga: solo se sabe lo que se tiene cerca.
+    const noche = e.hora < 5.2 || e.hora > 19.2;
+    if (noche) {
+      ctx.fillStyle = 'rgba(8, 10, 22, 0.5)';
+      ctx.fillRect(0, 0, lado, lado);
+    }
+
+    const [px, pz] = this._aPantalla(e.jugador.x, e.jugador.z, lado);
+
+    // Cono de vision de la camara.
+    if (e.camara) {
+      const giro = e.camara.giro;
+      const abertura = 0.62;
+      ctx.beginPath();
+      ctx.moveTo(px, pz);
+      const largo = lado * (this.abierto ? 0.1 : 0.17);
+      for (let a = -abertura; a <= abertura; a += 0.1) {
+        // El mundo tiene la Z hacia el sur y la camara mira a -Z con giro 0.
+        const ang = giro + a;
+        ctx.lineTo(px + Math.sin(ang) * -largo, pz + Math.cos(ang) * -largo);
+      }
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(246, 239, 227, 0.16)';
+      ctx.fill();
+    }
+
+    // Sitios de siempre.
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `${this.abierto ? 15 : 11}px system-ui, sans-serif`;
+    for (const s of SITIOS) {
+      const l = LUGARES[s.clave];
+      if (!l) continue;
+      const [x, y] = this._aPantalla(l.x, l.z, lado);
+      ctx.fillText(s.icono, x, y);
+      if (this.abierto && s.nombre) {
+        ctx.fillStyle = 'rgba(246, 239, 227, 0.85)';
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.fillText(s.nombre, x, y + 15);
+        ctx.font = '15px system-ui, sans-serif';
+      }
+    }
+
+    // Bandera del objetivo, latiendo.
+    for (const m of e.marcadores || []) {
+      const [x, y] = this._aPantalla(m.x, m.z, lado);
+      const pulso = 3.5 + Math.sin(Date.now() / 260) * 1.6;
+      ctx.beginPath();
+      ctx.arc(x, y, pulso + 3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(240, 185, 92, 0.28)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#f0b95c';
+      ctx.fill();
+    }
+
+    // El nino: un triangulo que apunta a donde mira.
+    ctx.save();
+    ctx.translate(px, pz);
+    ctx.rotate(-e.jugador.rumbo + Math.PI);
+    ctx.beginPath();
+    ctx.moveTo(0, -6);
+    ctx.lineTo(4.2, 5);
+    ctx.lineTo(0, 3);
+    ctx.lineTo(-4.2, 5);
+    ctx.closePath();
+    ctx.fillStyle = '#f6efe3';
+    ctx.strokeStyle = 'rgba(24, 17, 12, 0.85)';
+    ctx.lineWidth = 1.4;
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  alternar() {
+    this.abierto = !this.abierto;
+    this.caja.classList.toggle('abierto', this.abierto);
+    const lado = this.abierto ? Math.min(520, Math.round(Math.min(innerWidth, innerHeight) * 0.72)) : LADO;
+    this.lienzo.width = lado;
+    this.lienzo.height = lado;
+    this.rotulo.textContent = this.abierto ? 'El valle · norte arriba' : 'N';
+    return this.abierto;
+  }
+
+  cerrar() { if (this.abierto) this.alternar(); }
+}
+
+  __exp.Mapa = Mapa;
+});
+
 __def("src/partida.js", function (__exp, __req) {
 /**
  * partida.js — El juego en marcha: une mundo, reglas, render e interfaz.
@@ -8599,6 +9222,7 @@ const { Personaje } = __req("src/vista/personaje.js");
 const { Reloj } = __req("src/nucleo/reloj.js");
 const { Bucle } = __req("src/nucleo/bucle.js");
 const { Entrada } = __req("src/nucleo/entrada.js");
+const { Audio } = __req("src/nucleo/audio.js");
 const { m4, limitar, mezclar, seguir, TAU } = __req("src/nucleo/mate.js");
 const { partidaNueva, guardar, cargar, contar, contarEntrega, contarReceta, contarCultivo, conocimientos, prepararCuadros } = __req("src/nucleo/estado.js");
 const { actualizar: actualizarNecesidades, penalizaciones, comer: comerNec, dormir: dormirNec, barras } = __req("src/reglas/necesidades.js");
@@ -8618,6 +9242,7 @@ const { Paneles } = __req("src/ui/paneles.js");
 const { Dialogo } = __req("src/ui/dialogo.js");
 const { Minijuegos } = __req("src/ui/minijuegos.js");
 const { Tacto } = __req("src/ui/tacto.js");
+const { Mapa } = __req("src/ui/mapa.js");
 
 const VEL_ANDAR = 3.3;
 const VEL_CORRER = 6.0;
@@ -8655,6 +9280,15 @@ class Partida {
     this.camara = new Camara();
     this.reloj = new Reloj({ dia: e.dia, hora: e.hora });
     this.entrada = new Entrada(this.lienzo);
+    this.audio = new Audio({ volumen: e.ajustes.volumen ?? 0.75 });
+    this.audio.silenciar(e.ajustes.sonido === false);
+    // El navegador no deja sonar nada hasta que hay un gesto: el clic de
+    // "Empezar" ya cuenta, y si el juego se recupero de un guardado se
+    // despierta con lo primero que toque el jugador.
+    this.audio.despertar();
+    for (const evento of ['pointerdown', 'keydown']) {
+      addEventListener(evento, () => this.audio.despertar(), { once: true });
+    }
 
     // El nino empieza en el patio de la casa si es partida nueva.
     const inicio = e.jugador.x || e.jugador.z
@@ -8672,9 +9306,11 @@ class Partida {
     this.dialogo = new Dialogo(this.raiz);
     this.minijuegos = new Minijuegos(this.raiz);
     this.tacto = new Tacto(this.raiz, this.entrada);
+    this.mapa = new Mapa(this.raiz, this.terreno);
     this.hud.ponerBotones([
       { texto: '🧺 Canasta', titulo: 'Tecla I', alPulsar: () => this.abrirPanel('inventario') },
       { texto: '📖 Diario', titulo: 'Tecla J', alPulsar: () => this.abrirPanel('diario') },
+      { texto: '🗺️ Mapa', titulo: 'Tecla Q', alPulsar: () => { this.mapa.alternar(); this.audio.clic(); } },
       { texto: '⏸', titulo: 'Tecla Esc', alPulsar: () => this.abrirPanel('pausa') },
     ]);
 
@@ -8785,7 +9421,7 @@ class Partida {
       // decidir, no de que te pillen leyendo el inventario.
       this.dialogo.actualizar(dt);
       if (this.entrada.consumir('interactuar') || this.entrada.consumir('accion')) this.dialogo.avanzar();
-      if (this.entrada.consumir('pausa')) { this.dialogo.cerrar(); this.paneles.cerrar(); }
+      if (this.entrada.consumir('pausa')) { this.dialogo.cerrar(); this.paneles.cerrar(); this.mapa.cerrar(); }
       // La camara sigue viva: el valle se ve detras de la conversacion.
       this._actualizarCamara(dt);
       return;
@@ -8797,11 +9433,15 @@ class Partida {
     if (mirada.rueda) this.camara.acercar(mirada.rueda * 0.9);
 
     if (this.minijuegos.activo) {
-      this.minijuegos.actualizar(dt, {
+      const antes = this.minijuegos.lance?.estado;
+      const golpes = this.minijuegos.dados;
+      const mando = {
         accion: this.entrada.activa('accion'),
         pulso: this.entrada.consumir('accion') || this.entrada.consumir('interactuar'),
         cancelar: this.entrada.consumir('pausa'),
-      });
+      };
+      this.minijuegos.actualizar(dt, mando);
+      this._sonarMinijuego(antes, golpes, mando);
       this._avanzarTiempo(dt, 'quieto');
       this._actualizarCamara(dt);
       return;
@@ -8840,6 +9480,12 @@ class Partida {
 
     let vel = j.nadando ? VEL_NADAR : j.agachado ? VEL_AGACHADO : (quiereCorrer ? VEL_CORRER : VEL_ANDAR);
     vel *= pen.velocidad * frenoCarga;
+    // La camara se abre al correr y se cierra al agacharse: es el truco mas
+    // viejo del oficio para que la velocidad se sienta en el cuerpo.
+    if (!this.minijuegos.activo) {
+      const grados = j.nadando ? 56 : quiereCorrer && dir.x + dir.y !== 0 ? 66 : j.agachado ? 53 : 58;
+      this.camara.fovDeseado = grados * (Math.PI / 180);
+    }
 
     const fuerza = Math.hypot(dir.x, dir.y);
     if (fuerza > 0.02) {
@@ -8860,11 +9506,39 @@ class Partida {
 
     const suelo = this.terreno.altura(j.x, j.z);
     const profundidad = NIVEL_AGUA - suelo;
+    const nadabaAntes = j.nadando;
     j.nadando = profundidad > 0.95;
+    if (j.nadando !== nadabaAntes) {
+      this.audio.chapoteo(j.nadando ? 1 : 0.6);
+      this.mundo3d.salpicar(j.x, NIVEL_AGUA, j.z, j.nadando ? 12 : 7);
+    }
+    this._pasos(dt, profundidad);
     j.y = j.nadando ? NIVEL_AGUA - 0.42 : suelo;
     // El ruido que hace: es lo que oyen y huelen los animales.
     j.ruido = limitar((j.velocidad / VEL_CORRER) * (j.agachado ? 0.35 : 1) + (j.nadando ? 0.4 : 0), 0, 1);
     j.pose = this.jugadorPose || (carga > 0.75 ? 'cargar' : 'normal');
+  }
+
+  /**
+   * Los pasos suenan por distancia recorrida, no por tiempo: asi la cadencia
+   * sale sola al andar, al correr y al ir cargado, sin sincronizar nada.
+   */
+  _pasos(dt, profundidad) {
+    const j = this.jugador;
+    if (j.velocidad < 0.4) { this.distanciaPaso = 0; return; }
+    this.distanciaPaso = (this.distanciaPaso || 0) + j.velocidad * dt;
+    const zancada = j.agachado ? 0.85 : mezclar(1.25, 1.85, limitar(j.velocidad / VEL_CORRER, 0, 1));
+    if (this.distanciaPaso < zancada) return;
+    this.distanciaPaso = 0;
+    const zona = this.terreno.zona(j.x, j.z);
+    const suelo = profundidad > -0.25 ? 'agua'
+      : this.terreno.pendiente(j.x, j.z) > 0.45 ? 'piedra'
+      : zona === 'milpa' || zona === 'casa' ? 'tierra' : 'pasto';
+    this.audio.paso(suelo, j.velocidad > VEL_ANDAR + 0.5);
+    if (suelo !== 'agua' && !j.agachado) {
+      // Polvo del pie: poco, pero es lo que hace que el paso "pese".
+      this.mundo3d.polvo(j.x, j.y, j.z, suelo === 'tierra' ? 3 : 1);
+    }
   }
 
   _intentarMover(nx, nz) {
@@ -8929,8 +9603,36 @@ class Partida {
     }
     if (paso.cambioDia) this._nuevoDia();
 
+    this.acumuladoAmbiente = (this.acumuladoAmbiente || 0) + dt;
+    if (this.acumuladoAmbiente > 0.3) {
+      this.acumuladoAmbiente = 0;
+      this._ambienteSonoro();
+    }
+
     this.acumuladoGuardado += dt;
     if (this.acumuladoGuardado > 45) { this.acumuladoGuardado = 0; this.guardar(); }
+  }
+
+  /** Le dice al motor de sonido donde esta el nino y que tiempo hace. */
+  _ambienteSonoro() {
+    const j = this.jugador;
+    const { d } = this.terreno.distanciaCauce(j.x, j.z);
+    const dCasa = Math.hypot(j.x - LUGARES.casa.x, j.z - LUGARES.casa.z);
+    this.audio.ambiente({
+      distanciaRio: d,
+      viento: this.clima.viento.fuerza,
+      lluvia: this.clima.lluvia,
+      hora: this.reloj.hora,
+      bajoTecho: dCasa < 5,
+    });
+    // El fogon crepita si estas cerca y esta encendido.
+    const dFogon = Math.hypot(j.x - LUGARES.fogon.x, j.z - LUGARES.fogon.z);
+    if (dFogon < 7 && (this.reloj.esNoche || this.clima.lluvia > 0.3)) this.audio.fuego();
+    // Truenos: sueltos, no en bucle.
+    if (this.clima.tormenta && Math.random() < 0.02) {
+      this.audio.trueno(Math.random());
+      this.camara.sacudir(0.35);
+    }
   }
 
   _cadaHora() {
@@ -8996,6 +9698,26 @@ class Partida {
     this.opciones = interaccionesCerca(ctx);
     this.hud.mostrarContexto(this.opciones, (op) => this.hacer(op));
     this.tacto.iconoAccion(this.opciones[0]?.icono || '⚡');
+    // Un clic seco al entrar en el alcance de algo nuevo: avisa sin texto.
+    const primera = this.opciones.find((o) => !o.desactivada);
+    const firma = primera ? primera.id + (primera.objetivo?.id ?? '') : '';
+    if (firma && firma !== this.ultimoAlcance) this.audio.clic();
+    this.ultimoAlcance = firma;
+  }
+
+  /** Lo que hay que marcar en el suelo: aquello con lo que se puede actuar. */
+  _alcanceMarcado() {
+    const vistos = new Set();
+    const marcas = [];
+    for (const o of this.opciones) {
+      if (o.desactivada) continue;
+      const p = o.objetivo;
+      if (!p || p.x == null || vistos.has(p.id ?? `${p.x},${p.z}`)) continue;
+      vistos.add(p.id ?? `${p.x},${p.z}`);
+      marcas.push({ x: p.x, z: p.z, radio: o.id === 'cazar' ? 1.3 : 0.9 });
+      if (marcas.length >= 4) break;
+    }
+    return marcas;
   }
 
   _contexto() {
@@ -9027,6 +9749,7 @@ class Partida {
         if (op && !op.desactivada) this.hacer(op);
       }
     }
+    if (t.consumir('mapa')) { this.mapa.alternar(); this.audio.clic(); }
     if (t.consumir('inventario')) this.abrirPanel('inventario');
     if (t.consumir('diario')) this.abrirPanel('diario');
     if (t.consumir('pausa')) this.abrirPanel('pausa');
@@ -9058,7 +9781,7 @@ class Partida {
     // Rajar lena, en cambio, ya rinde y el minijuego solo anade el extra por
     // buen pulso, asi que primero se cobra lo seguro.
     if (r.minijuego && !r.objetos) { this._abrirMinijuego(r.minijuego, op); return; }
-    if (!r.ok) { this.hud.aviso(r.texto || 'No se pudo.', 'malo'); return; }
+    if (!r.ok) { this.hud.aviso(r.texto || 'No se pudo.', 'malo'); this.audio.aviso(false); return; }
 
     // objetos
     let sobra = 0;
@@ -9066,7 +9789,8 @@ class Partida {
       const res = agregar(e.jugador.inventario, o.id, o.cantidad, nivel(e.jugador.habilidades, 'fuerza'));
       sobra += res.rechazado;
     }
-    if (sobra > 0) this.hud.aviso('No te cabe todo: vas muy cargado.', 'malo');
+    if (r.objetos?.length) this.audio.recoger();
+    if (sobra > 0) { this.hud.aviso('No te cabe todo: vas muy cargado.', 'malo'); this.audio.aviso(false); }
 
     // entregas a la casa
     if (r.entregas) {
@@ -9076,6 +9800,7 @@ class Partida {
         contarEntrega(e, x.id, x.cantidad, categoria);
       }
       this.hud.aviso(`${r.texto} (+${Math.round(r.aporte)} de aporte)`, 'bueno');
+      this.audio.logro();
     } else if (r.texto) {
       this.hud.aviso(r.texto, 'bueno');
     }
@@ -9091,6 +9816,7 @@ class Partida {
   _ganarXP(habilidad, xp) {
     const res = ganar(this.estado.jugador.habilidades, habilidad, xp);
     if (res.subio) {
+      this.audio.logro();
       this.hud.aviso(`¡${habilidad} nivel ${res.nivel}!`, 'premio', 5200);
       for (const d of res.desbloqueos) this.hud.aviso(`Ahora sabés: ${d.texto}`, 'premio', 6200);
     }
@@ -9117,10 +9843,12 @@ class Partida {
         hondura: punto?.hondura ?? 0.3, hora: this.reloj.hora, lluvia: this.clima.lluvia,
         cebo: conocimientos(e).has('cebo'), bono: bono(hab, 'pesca'),
       }, Math.random);
+      this.audio.lance();
       this.minijuegos.iniciarPesca(lance, (res) => {
         this.jugadorPose = null;
         if (res.cancelado) return;
         if (res.ok) {
+          this.audio.chapoteo(0.8);
           for (const o of res.objetos) agregar(e.jugador.inventario, o.id, o.cantidad, nivel(hab, 'fuerza'));
           contar(e, 'pescar');
           this.hud.aviso(`¡${res.texto}!`, 'bueno', 4200);
@@ -9165,6 +9893,7 @@ class Partida {
         this.camara.fovDeseado = 58 * (Math.PI / 180);
         if (res.cancelado) return;
         if (!res.disparo) { this.hud.aviso(res.texto || 'No tiraste.', 'malo'); return; }
+        this.audio.tiro();
         quitar(e.jugador.inventario, 'piedra', 1);
         const tiro = resolverTiro({
           animal: animal.perfil, desvio: res.desvio, distancia, arma,
@@ -9195,6 +9924,7 @@ class Partida {
         this.jugadorPose = null;
         if (res.cancelado) return;
         const extra = res.aciertos;
+        this.camara.sacudir(0.12 + extra * 0.06);
         if (extra > 0) {
           agregar(e.jugador.inventario, 'lena', extra, nivel(hab, 'fuerza'));
           this.hud.aviso(`${extra} leña${extra > 1 ? 's' : ''} de más por los buenos golpes.`, 'bueno');
@@ -9202,6 +9932,19 @@ class Partida {
         this._ganarXP('fuerza', 3 + extra * 2);
         this._comprobarCapitulo();
       });
+    }
+  }
+
+  /** El pulso del minijuego: la picada, el carrete y cada hachazo. */
+  _sonarMinijuego(estadoAntes, golpesAntes, mando) {
+    const m = this.minijuegos;
+    if (m.modo === 'pesca' && m.lance) {
+      if (estadoAntes !== 'picando' && m.lance.estado === 'picando') this.audio.picada();
+      if (m.lance.estado === 'luchando' && mando.accion) this.audio.carrete(m.lance.tension);
+    } else if (m.modo === 'lena' && m.dados > (golpesAntes || 0)) {
+      const bueno = m.marcador > 0.42 && m.marcador < 0.58;
+      this.audio.hachazo(bueno);
+      this.camara.sacudir(bueno ? 0.28 : 0.12);
     }
   }
 
@@ -9266,9 +10009,10 @@ class Partida {
       alAjustar: (clave, valor) => {
         this.estado.ajustes[clave] = valor;
         this.guardar();
-        if (clave === 'motor' || clave === 'sombras' || clave === 'calidad') {
-          this.hud.aviso('Se aplica al volver a entrar al juego.', 'neutro', 5000);
-        }
+        // El sonido se aplica en el acto; lo grafico necesita reconstruir.
+        if (clave === 'sonido') { this.audio.silenciar(!valor); if (valor) this.audio.clic(); }
+        else if (clave === 'volumen') { this.audio.ponerVolumen(valor); this.audio.clic(); }
+        else this.hud.aviso('Se aplica al volver a entrar al juego.', 'neutro', 5000);
       },
       alGuardar: () => { this.guardar(); this.hud.aviso('Partida guardada.', 'bueno'); },
       alReiniciar: () => { if (confirm('¿Empezar de nuevo? Se pierde la partida.')) this.alSalir?.('nueva'); },
@@ -9287,6 +10031,7 @@ class Partida {
     this.mundo3d.emitirFauna(this.fauna);
     this.mundo3d.emitirPerro(this.perro);
     this.mundo3d.emitirSenales(this._marcadores());
+    this.mundo3d.emitirAlcance(this._alcanceMarcado());
     this.mundo3d.emitirParticulas({
       dt, camara: this.camara, clima: this.clima, hora: this.reloj.hora,
       fogonEncendido: this.reloj.esNoche || this.clima.lluvia > 0.3,
@@ -9306,6 +10051,11 @@ class Partida {
       viento: this.vientoSuave, agitacion: limitar(0.2 + this.clima.lluvia * 0.7, 0, 1),
     });
 
+    this.mapa.actualizar({
+      jugador: j, camara: this.camara, hora: this.reloj.hora,
+      marcadores: this._marcadoresMapa(),
+    });
+
     this.hud.actualizar({
       reloj: this.reloj, dia: this.reloj.dia, clima: this.clima,
       necesidades: e.jugador.necesidades,
@@ -9316,8 +10066,13 @@ class Partida {
     this.dialogo.actualizar(dt);
   }
 
+  /** Los sitios del objetivo, sin filtrar por distancia: el mapa los quiere todos. */
+  _marcadoresMapa() {
+    return this._marcadores(0);
+  }
+
   /** Banderas que apuntan a donde hay que ir para el objetivo activo. */
-  _marcadores() {
+  _marcadores(distanciaMinima = 14) {
     const cap = capituloActivo(this.estado);
     if (!cap) return [];
     const ev = evaluarCapitulo(cap, this.estado);
@@ -9332,8 +10087,10 @@ class Partida {
       else if (['sembrar', 'regar', 'cosechar'].includes(def.accion) || def.tipo === 'sembrar' || def.tipo === 'cosechar') sitios.push(LUGARES.milpa);
       else if (def.tipo === 'cocinar') sitios.push(LUGARES.fogon);
     }
-    // Solo se marca lo que esta lejos: de cerca estorba.
-    return sitios.filter((s) => Math.hypot(s.x - this.jugador.x, s.z - this.jugador.z) > 14).slice(0, 2);
+    // En el mundo solo se planta bandera en lo que esta lejos: de cerca estorba.
+    return sitios
+      .filter((s) => Math.hypot(s.x - this.jugador.x, s.z - this.jugador.z) > distanciaMinima)
+      .slice(0, 3);
   }
 
   // -------------------------------------------------------------- guardado

@@ -578,6 +578,26 @@ export function cordillera(radio, altura, semilla = 1, color = [0.30, 0.38, 0.42
   });
 }
 
+/**
+ * Anillo plano que se posa en el suelo. Marca lo que el nino tiene al alcance:
+ * sin esto hay que adivinar a que distancia responde cada cosa, que es de lo
+ * que mas cansa al empezar a jugar.
+ */
+export function anillo(radio = 1, grosor = 0.12, lados = 32) {
+  return construir('anillo', (c) => {
+    const dentro = radio - grosor / 2, fuera = radio + grosor / 2;
+    for (let i = 0; i < lados; i++) {
+      const a0 = (i / lados) * TAU, a1 = ((i + 1) / lados) * TAU;
+      const base = c.vertices;
+      c.vertice([Math.cos(a0) * dentro, 0, Math.sin(a0) * dentro], [0, 1, 0], [1, 1, 1], 0);
+      c.vertice([Math.cos(a1) * dentro, 0, Math.sin(a1) * dentro], [0, 1, 0], [1, 1, 1], 0);
+      c.vertice([Math.cos(a1) * fuera, 0, Math.sin(a1) * fuera], [0, 1, 0], [1, 1, 1], 0);
+      c.vertice([Math.cos(a0) * fuera, 0, Math.sin(a0) * fuera], [0, 1, 0], [1, 1, 1], 0);
+      c.quad(base, base + 1, base + 2, base + 3);
+    }
+  });
+}
+
 /** Cuadrilatero unitario: lo usan lluvia, chispas y sombras de contacto. */
 export function quad() {
   return construir('quad', (c) => {

@@ -22,6 +22,7 @@ import { Personaje } from './vista/personaje.js';
 import { Reloj } from './nucleo/reloj.js';
 import { Bucle } from './nucleo/bucle.js';
 import { Entrada } from './nucleo/entrada.js';
+import { Audio } from './nucleo/audio.js';
 import { m4, limitar, mezclar, seguir, TAU } from './nucleo/mate.js';
 import { partidaNueva, guardar, cargar, contar, contarEntrega, contarReceta, contarCultivo,
   conocimientos, prepararCuadros } from './nucleo/estado.js';
@@ -43,6 +44,7 @@ import { Paneles } from './ui/paneles.js';
 import { Dialogo } from './ui/dialogo.js';
 import { Minijuegos } from './ui/minijuegos.js';
 import { Tacto } from './ui/tacto.js';
+import { Mapa } from './ui/mapa.js';
 
 const VEL_ANDAR = 3.3;
 const VEL_CORRER = 6.0;
@@ -80,6 +82,15 @@ export class Partida {
     this.camara = new Camara();
     this.reloj = new Reloj({ dia: e.dia, hora: e.hora });
     this.entrada = new Entrada(this.lienzo);
+    this.audio = new Audio({ volumen: e.ajustes.volumen ?? 0.75 });
+    this.audio.silenciar(e.ajustes.sonido === false);
+    // El navegador no deja sonar nada hasta que hay un gesto: el clic de
+    // "Empezar" ya cuenta, y si el juego se recupero de un guardado se
+    // despierta con lo primero que toque el jugador.
+    this.audio.despertar();
+    for (const evento of ['pointerdown', 'keydown']) {
+      addEventListener(evento, () => this.audio.despertar(), { once: true });
+    }
 
     // El nino empieza en el patio de la casa si es partida nueva.
     const inicio = e.jugador.x || e.jugador.z
@@ -97,9 +108,11 @@ export class Partida {
     this.dialogo = new Dialogo(this.raiz);
     this.minijuegos = new Minijuegos(this.raiz);
     this.tacto = new Tacto(this.raiz, this.entrada);
+    this.mapa = new Mapa(this.raiz, this.terreno);
     this.hud.ponerBotones([
       { texto: '🧺 Canasta', titulo: 'Tecla I', alPulsar: () => this.abrirPanel('inventario') },
       { texto: '📖 Diario', titulo: 'Tecla J', alPulsar: () => this.abrirPanel('diario') },
+      { texto: '🗺️ Mapa', titulo: 'Tecla Q', alPulsar: () => { this.mapa.alternar(); this.audio.clic(); } },
       { texto: '⏸', titulo: 'Tecla Esc', alPulsar: () => this.abrirPanel('pausa') },
     ]);
 
@@ -210,7 +223,7 @@ export class Partida {
       // decidir, no de que te pillen leyendo el inventario.
       this.dialogo.actualizar(dt);
       if (this.entrada.consumir('interactuar') || this.entrada.consumir('accion')) this.dialogo.avanzar();
-      if (this.entrada.consumir('pausa')) { this.dialogo.cerrar(); this.paneles.cerrar(); }
+      if (this.entrada.consumir('pausa')) { this.dialogo.cerrar(); this.paneles.cerrar(); this.mapa.cerrar(); }
       // La camara sigue viva: el valle se ve detras de la conversacion.
       this._actualizarCamara(dt);
       return;
@@ -222,11 +235,15 @@ export class Partida {
     if (mirada.rueda) this.camara.acercar(mirada.rueda * 0.9);
 
     if (this.minijuegos.activo) {
-      this.minijuegos.actualizar(dt, {
+      const antes = this.minijuegos.lance?.estado;
+      const golpes = this.minijuegos.dados;
+      const mando = {
         accion: this.entrada.activa('accion'),
         pulso: this.entrada.consumir('accion') || this.entrada.consumir('interactuar'),
         cancelar: this.entrada.consumir('pausa'),
-      });
+      };
+      this.minijuegos.actualizar(dt, mando);
+      this._sonarMinijuego(antes, golpes, mando);
       this._avanzarTiempo(dt, 'quieto');
       this._actualizarCamara(dt);
       return;
@@ -265,6 +282,12 @@ export class Partida {
 
     let vel = j.nadando ? VEL_NADAR : j.agachado ? VEL_AGACHADO : (quiereCorrer ? VEL_CORRER : VEL_ANDAR);
     vel *= pen.velocidad * frenoCarga;
+    // La camara se abre al correr y se cierra al agacharse: es el truco mas
+    // viejo del oficio para que la velocidad se sienta en el cuerpo.
+    if (!this.minijuegos.activo) {
+      const grados = j.nadando ? 56 : quiereCorrer && dir.x + dir.y !== 0 ? 66 : j.agachado ? 53 : 58;
+      this.camara.fovDeseado = grados * (Math.PI / 180);
+    }
 
     const fuerza = Math.hypot(dir.x, dir.y);
     if (fuerza > 0.02) {
@@ -285,11 +308,39 @@ export class Partida {
 
     const suelo = this.terreno.altura(j.x, j.z);
     const profundidad = NIVEL_AGUA - suelo;
+    const nadabaAntes = j.nadando;
     j.nadando = profundidad > 0.95;
+    if (j.nadando !== nadabaAntes) {
+      this.audio.chapoteo(j.nadando ? 1 : 0.6);
+      this.mundo3d.salpicar(j.x, NIVEL_AGUA, j.z, j.nadando ? 12 : 7);
+    }
+    this._pasos(dt, profundidad);
     j.y = j.nadando ? NIVEL_AGUA - 0.42 : suelo;
     // El ruido que hace: es lo que oyen y huelen los animales.
     j.ruido = limitar((j.velocidad / VEL_CORRER) * (j.agachado ? 0.35 : 1) + (j.nadando ? 0.4 : 0), 0, 1);
     j.pose = this.jugadorPose || (carga > 0.75 ? 'cargar' : 'normal');
+  }
+
+  /**
+   * Los pasos suenan por distancia recorrida, no por tiempo: asi la cadencia
+   * sale sola al andar, al correr y al ir cargado, sin sincronizar nada.
+   */
+  _pasos(dt, profundidad) {
+    const j = this.jugador;
+    if (j.velocidad < 0.4) { this.distanciaPaso = 0; return; }
+    this.distanciaPaso = (this.distanciaPaso || 0) + j.velocidad * dt;
+    const zancada = j.agachado ? 0.85 : mezclar(1.25, 1.85, limitar(j.velocidad / VEL_CORRER, 0, 1));
+    if (this.distanciaPaso < zancada) return;
+    this.distanciaPaso = 0;
+    const zona = this.terreno.zona(j.x, j.z);
+    const suelo = profundidad > -0.25 ? 'agua'
+      : this.terreno.pendiente(j.x, j.z) > 0.45 ? 'piedra'
+      : zona === 'milpa' || zona === 'casa' ? 'tierra' : 'pasto';
+    this.audio.paso(suelo, j.velocidad > VEL_ANDAR + 0.5);
+    if (suelo !== 'agua' && !j.agachado) {
+      // Polvo del pie: poco, pero es lo que hace que el paso "pese".
+      this.mundo3d.polvo(j.x, j.y, j.z, suelo === 'tierra' ? 3 : 1);
+    }
   }
 
   _intentarMover(nx, nz) {
@@ -354,8 +405,36 @@ export class Partida {
     }
     if (paso.cambioDia) this._nuevoDia();
 
+    this.acumuladoAmbiente = (this.acumuladoAmbiente || 0) + dt;
+    if (this.acumuladoAmbiente > 0.3) {
+      this.acumuladoAmbiente = 0;
+      this._ambienteSonoro();
+    }
+
     this.acumuladoGuardado += dt;
     if (this.acumuladoGuardado > 45) { this.acumuladoGuardado = 0; this.guardar(); }
+  }
+
+  /** Le dice al motor de sonido donde esta el nino y que tiempo hace. */
+  _ambienteSonoro() {
+    const j = this.jugador;
+    const { d } = this.terreno.distanciaCauce(j.x, j.z);
+    const dCasa = Math.hypot(j.x - LUGARES.casa.x, j.z - LUGARES.casa.z);
+    this.audio.ambiente({
+      distanciaRio: d,
+      viento: this.clima.viento.fuerza,
+      lluvia: this.clima.lluvia,
+      hora: this.reloj.hora,
+      bajoTecho: dCasa < 5,
+    });
+    // El fogon crepita si estas cerca y esta encendido.
+    const dFogon = Math.hypot(j.x - LUGARES.fogon.x, j.z - LUGARES.fogon.z);
+    if (dFogon < 7 && (this.reloj.esNoche || this.clima.lluvia > 0.3)) this.audio.fuego();
+    // Truenos: sueltos, no en bucle.
+    if (this.clima.tormenta && Math.random() < 0.02) {
+      this.audio.trueno(Math.random());
+      this.camara.sacudir(0.35);
+    }
   }
 
   _cadaHora() {
@@ -421,6 +500,26 @@ export class Partida {
     this.opciones = interaccionesCerca(ctx);
     this.hud.mostrarContexto(this.opciones, (op) => this.hacer(op));
     this.tacto.iconoAccion(this.opciones[0]?.icono || '⚡');
+    // Un clic seco al entrar en el alcance de algo nuevo: avisa sin texto.
+    const primera = this.opciones.find((o) => !o.desactivada);
+    const firma = primera ? primera.id + (primera.objetivo?.id ?? '') : '';
+    if (firma && firma !== this.ultimoAlcance) this.audio.clic();
+    this.ultimoAlcance = firma;
+  }
+
+  /** Lo que hay que marcar en el suelo: aquello con lo que se puede actuar. */
+  _alcanceMarcado() {
+    const vistos = new Set();
+    const marcas = [];
+    for (const o of this.opciones) {
+      if (o.desactivada) continue;
+      const p = o.objetivo;
+      if (!p || p.x == null || vistos.has(p.id ?? `${p.x},${p.z}`)) continue;
+      vistos.add(p.id ?? `${p.x},${p.z}`);
+      marcas.push({ x: p.x, z: p.z, radio: o.id === 'cazar' ? 1.3 : 0.9 });
+      if (marcas.length >= 4) break;
+    }
+    return marcas;
   }
 
   _contexto() {
@@ -452,6 +551,7 @@ export class Partida {
         if (op && !op.desactivada) this.hacer(op);
       }
     }
+    if (t.consumir('mapa')) { this.mapa.alternar(); this.audio.clic(); }
     if (t.consumir('inventario')) this.abrirPanel('inventario');
     if (t.consumir('diario')) this.abrirPanel('diario');
     if (t.consumir('pausa')) this.abrirPanel('pausa');
@@ -483,7 +583,7 @@ export class Partida {
     // Rajar lena, en cambio, ya rinde y el minijuego solo anade el extra por
     // buen pulso, asi que primero se cobra lo seguro.
     if (r.minijuego && !r.objetos) { this._abrirMinijuego(r.minijuego, op); return; }
-    if (!r.ok) { this.hud.aviso(r.texto || 'No se pudo.', 'malo'); return; }
+    if (!r.ok) { this.hud.aviso(r.texto || 'No se pudo.', 'malo'); this.audio.aviso(false); return; }
 
     // objetos
     let sobra = 0;
@@ -491,7 +591,8 @@ export class Partida {
       const res = agregar(e.jugador.inventario, o.id, o.cantidad, nivel(e.jugador.habilidades, 'fuerza'));
       sobra += res.rechazado;
     }
-    if (sobra > 0) this.hud.aviso('No te cabe todo: vas muy cargado.', 'malo');
+    if (r.objetos?.length) this.audio.recoger();
+    if (sobra > 0) { this.hud.aviso('No te cabe todo: vas muy cargado.', 'malo'); this.audio.aviso(false); }
 
     // entregas a la casa
     if (r.entregas) {
@@ -501,6 +602,7 @@ export class Partida {
         contarEntrega(e, x.id, x.cantidad, categoria);
       }
       this.hud.aviso(`${r.texto} (+${Math.round(r.aporte)} de aporte)`, 'bueno');
+      this.audio.logro();
     } else if (r.texto) {
       this.hud.aviso(r.texto, 'bueno');
     }
@@ -516,6 +618,7 @@ export class Partida {
   _ganarXP(habilidad, xp) {
     const res = ganar(this.estado.jugador.habilidades, habilidad, xp);
     if (res.subio) {
+      this.audio.logro();
       this.hud.aviso(`¡${habilidad} nivel ${res.nivel}!`, 'premio', 5200);
       for (const d of res.desbloqueos) this.hud.aviso(`Ahora sabés: ${d.texto}`, 'premio', 6200);
     }
@@ -542,10 +645,12 @@ export class Partida {
         hondura: punto?.hondura ?? 0.3, hora: this.reloj.hora, lluvia: this.clima.lluvia,
         cebo: conocimientos(e).has('cebo'), bono: bono(hab, 'pesca'),
       }, Math.random);
+      this.audio.lance();
       this.minijuegos.iniciarPesca(lance, (res) => {
         this.jugadorPose = null;
         if (res.cancelado) return;
         if (res.ok) {
+          this.audio.chapoteo(0.8);
           for (const o of res.objetos) agregar(e.jugador.inventario, o.id, o.cantidad, nivel(hab, 'fuerza'));
           contar(e, 'pescar');
           this.hud.aviso(`¡${res.texto}!`, 'bueno', 4200);
@@ -590,6 +695,7 @@ export class Partida {
         this.camara.fovDeseado = 58 * (Math.PI / 180);
         if (res.cancelado) return;
         if (!res.disparo) { this.hud.aviso(res.texto || 'No tiraste.', 'malo'); return; }
+        this.audio.tiro();
         quitar(e.jugador.inventario, 'piedra', 1);
         const tiro = resolverTiro({
           animal: animal.perfil, desvio: res.desvio, distancia, arma,
@@ -620,6 +726,7 @@ export class Partida {
         this.jugadorPose = null;
         if (res.cancelado) return;
         const extra = res.aciertos;
+        this.camara.sacudir(0.12 + extra * 0.06);
         if (extra > 0) {
           agregar(e.jugador.inventario, 'lena', extra, nivel(hab, 'fuerza'));
           this.hud.aviso(`${extra} leña${extra > 1 ? 's' : ''} de más por los buenos golpes.`, 'bueno');
@@ -627,6 +734,19 @@ export class Partida {
         this._ganarXP('fuerza', 3 + extra * 2);
         this._comprobarCapitulo();
       });
+    }
+  }
+
+  /** El pulso del minijuego: la picada, el carrete y cada hachazo. */
+  _sonarMinijuego(estadoAntes, golpesAntes, mando) {
+    const m = this.minijuegos;
+    if (m.modo === 'pesca' && m.lance) {
+      if (estadoAntes !== 'picando' && m.lance.estado === 'picando') this.audio.picada();
+      if (m.lance.estado === 'luchando' && mando.accion) this.audio.carrete(m.lance.tension);
+    } else if (m.modo === 'lena' && m.dados > (golpesAntes || 0)) {
+      const bueno = m.marcador > 0.42 && m.marcador < 0.58;
+      this.audio.hachazo(bueno);
+      this.camara.sacudir(bueno ? 0.28 : 0.12);
     }
   }
 
@@ -691,9 +811,10 @@ export class Partida {
       alAjustar: (clave, valor) => {
         this.estado.ajustes[clave] = valor;
         this.guardar();
-        if (clave === 'motor' || clave === 'sombras' || clave === 'calidad') {
-          this.hud.aviso('Se aplica al volver a entrar al juego.', 'neutro', 5000);
-        }
+        // El sonido se aplica en el acto; lo grafico necesita reconstruir.
+        if (clave === 'sonido') { this.audio.silenciar(!valor); if (valor) this.audio.clic(); }
+        else if (clave === 'volumen') { this.audio.ponerVolumen(valor); this.audio.clic(); }
+        else this.hud.aviso('Se aplica al volver a entrar al juego.', 'neutro', 5000);
       },
       alGuardar: () => { this.guardar(); this.hud.aviso('Partida guardada.', 'bueno'); },
       alReiniciar: () => { if (confirm('¿Empezar de nuevo? Se pierde la partida.')) this.alSalir?.('nueva'); },
@@ -712,6 +833,7 @@ export class Partida {
     this.mundo3d.emitirFauna(this.fauna);
     this.mundo3d.emitirPerro(this.perro);
     this.mundo3d.emitirSenales(this._marcadores());
+    this.mundo3d.emitirAlcance(this._alcanceMarcado());
     this.mundo3d.emitirParticulas({
       dt, camara: this.camara, clima: this.clima, hora: this.reloj.hora,
       fogonEncendido: this.reloj.esNoche || this.clima.lluvia > 0.3,
@@ -731,6 +853,11 @@ export class Partida {
       viento: this.vientoSuave, agitacion: limitar(0.2 + this.clima.lluvia * 0.7, 0, 1),
     });
 
+    this.mapa.actualizar({
+      jugador: j, camara: this.camara, hora: this.reloj.hora,
+      marcadores: this._marcadoresMapa(),
+    });
+
     this.hud.actualizar({
       reloj: this.reloj, dia: this.reloj.dia, clima: this.clima,
       necesidades: e.jugador.necesidades,
@@ -741,8 +868,13 @@ export class Partida {
     this.dialogo.actualizar(dt);
   }
 
+  /** Los sitios del objetivo, sin filtrar por distancia: el mapa los quiere todos. */
+  _marcadoresMapa() {
+    return this._marcadores(0);
+  }
+
   /** Banderas que apuntan a donde hay que ir para el objetivo activo. */
-  _marcadores() {
+  _marcadores(distanciaMinima = 14) {
     const cap = capituloActivo(this.estado);
     if (!cap) return [];
     const ev = evaluarCapitulo(cap, this.estado);
@@ -757,8 +889,10 @@ export class Partida {
       else if (['sembrar', 'regar', 'cosechar'].includes(def.accion) || def.tipo === 'sembrar' || def.tipo === 'cosechar') sitios.push(LUGARES.milpa);
       else if (def.tipo === 'cocinar') sitios.push(LUGARES.fogon);
     }
-    // Solo se marca lo que esta lejos: de cerca estorba.
-    return sitios.filter((s) => Math.hypot(s.x - this.jugador.x, s.z - this.jugador.z) > 14).slice(0, 2);
+    // En el mundo solo se planta bandera en lo que esta lejos: de cerca estorba.
+    return sitios
+      .filter((s) => Math.hypot(s.x - this.jugador.x, s.z - this.jugador.z) > distanciaMinima)
+      .slice(0, 3);
   }
 
   // -------------------------------------------------------------- guardado

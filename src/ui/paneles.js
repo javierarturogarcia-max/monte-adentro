@@ -270,6 +270,16 @@ export class Paneles {
       el('div', { clase: 'nota', estilo: 'margin-bottom:14px',
         texto: `Motor gráfico: ${d.motor}. Partida guardada automáticamente al terminar cada día.` }),
       el('div', { clase: 'fila-botones' }, [
+        boton(a.sonido === false ? '🔇 Sonido: no' : '🔊 Sonido: sí', {
+          alPulsar: () => { this.acciones.alAjustar?.('sonido', a.sonido === false); this.abrir('pausa', this.datos); } }),
+        boton(`Volumen: ${Math.round((a.volumen ?? 0.75) * 100)}%`, {
+          alPulsar: () => {
+            const paso = { 0.25: 0.5, 0.5: 0.75, 0.75: 1, 1: 0.25 };
+            this.acciones.alAjustar?.('volumen', paso[a.volumen ?? 0.75] ?? 0.75);
+            this.abrir('pausa', this.datos);
+          } }),
+      ]),
+      el('div', { clase: 'fila-botones' }, [
         boton(a.sombras ? 'Sombras: sí' : 'Sombras: no', { alPulsar: () => { this.acciones.alAjustar?.('sombras', !a.sombras); this.abrir('pausa', this.datos); } }),
         boton(`Calidad: ${a.calidad}`, { alPulsar: () => { this.acciones.alAjustar?.('calidad', a.calidad === 'alta' ? 'media' : a.calidad === 'media' ? 'baja' : 'alta'); this.abrir('pausa', this.datos); } }),
         boton(`Motor: ${a.motor}`, { alPulsar: () => { this.acciones.alAjustar?.('motor', a.motor === 'auto' ? 'webgl2' : a.motor === 'webgl2' ? 'webgpu' : 'auto'); this.abrir('pausa', this.datos); } }),

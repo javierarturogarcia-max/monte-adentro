@@ -38,7 +38,7 @@ export function partidaNueva(op = {}) {
     capitulos: { activo: null, hechos: [], vistos: [] },
     contadores: contadoresNuevos(),
     diario: [],                      // sucesos del dia, para el resumen nocturno
-    ajustes: { motor: 'auto', sombras: true, calidad: 'alta', musica: true, tacto: 'auto' },
+    ajustes: { motor: 'auto', sombras: true, calidad: 'alta', sonido: true, volumen: 0.75, tacto: 'auto' },
   };
 }
 
