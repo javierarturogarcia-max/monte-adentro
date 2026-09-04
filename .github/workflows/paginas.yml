@@ -1,0 +1,52 @@
+# Publicacion en GitHub Pages.
+#
+# NO se dispara solo: en un repositorio privado y en plan gratuito, Pages no
+# publica, y un flujo que falla en cada empuje solo da ruido. Cuando el
+# repositorio sea publico y Pages este activado (Settings -> Pages -> Source:
+# GitHub Actions), se lanza a mano desde la pestana Actions, o se anade aqui
+# el disparador `push` sobre main.
+#
+# El sitio es estatico y sin dependencias: se publica el repositorio tal cual,
+# asi que el juego queda en <usuario>.github.io/<repo>/ y el archivo unico en
+# <usuario>.github.io/<repo>/dist/monte-adentro.html
+
+name: Publicar en GitHub Pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  pruebas:
+    name: Pruebas antes de publicar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+
+  publicar:
+    name: Publicar
+    needs: pruebas
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - id: despliegue
+        uses: actions/deploy-pages@v4

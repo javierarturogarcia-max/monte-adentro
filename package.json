@@ -1,0 +1,25 @@
+{
+  "name": "monte-adentro",
+  "version": "1.0.0",
+  "description": "Juego 3D de superacion en el campo: un nino aprende a cazar, pescar, sembrar su milpa y traer agua y lena a una casa sin luz ni agua corriente. Motor propio WebGPU/WebGL2, sin dependencias ni archivos de arte.",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "node tools/servidor.mjs",
+    "test": "node --test test/*.test.js",
+    "build": "node tools/build.mjs",
+    "verify": "npm test && npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "juego",
+    "webgpu",
+    "webgl2",
+    "3d",
+    "supervivencia",
+    "sin-dependencias"
+  ]
+}

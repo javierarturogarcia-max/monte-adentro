@@ -1,0 +1,37 @@
+# Comprobaciones de Monte Adentro.
+#
+# El proyecto no tiene dependencias: no hay nada que instalar. Se ejecutan las
+# pruebas de las reglas y del mundo, y se comprueba que dist/ no se haya
+# quedado desfasado respecto a src/ (si alguien olvida reconstruir, el archivo
+# unico publicado dejaria de ser el juego que esta en el repositorio).
+
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pruebas:
+    name: Reglas, mundo y empaquetado
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Ejecutar la bateria de pruebas
+        run: npm test
+
+      - name: Reconstruir y comprobar que dist/ esta al dia
+        run: |
+          npm run build
+          if ! git diff --quiet -- dist/; then
+            echo "::error::dist/ esta desfasado respecto a src/. Ejecuta 'npm run build' y vuelve a hacer commit."
+            git diff --stat -- dist/
+            exit 1
+          fi
