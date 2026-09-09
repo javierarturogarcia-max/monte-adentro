@@ -19,6 +19,7 @@ const MAPA = {
   Space: 'accion',
   KeyI: 'inventario', Tab: 'inventario',
   KeyJ: 'diario',
+  KeyR: 'rancho',
   KeyQ: 'mapa',
   Escape: 'pausa',
   KeyF: 'linterna',

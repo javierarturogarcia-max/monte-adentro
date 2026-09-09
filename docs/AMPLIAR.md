@@ -21,6 +21,7 @@ entero en un solo archivo, sin ninguna dependencia externa).
 | Interactuar | E o Enter | X | botón ✋ |
 | Acción / minijuego | Espacio | A | botón ⚡ |
 | Mapa del valle | Q | — | botón 🗺️ |
+| El rancho (niveles y obras) | R | — | botón 🛖 |
 | Canasta · Diario · Pausa | I · J · Esc | Y · Start | botones de arriba |
 | Segunda y tercera opción | 1, 2, 3 | — | tocar la opción |
 
@@ -30,6 +31,11 @@ en casa y dormir. Al cerrar el día se puntúa con estrellas.
 
 **Lo que decide una partida no es la puntería, es el peso.** Un cántaro lleno
 son diez kilos y el niño aguanta diecisiete: cada viaje al río es una decisión.
+
+Y por encima de ese día está el bucle largo, que es el juego de verdad: traer
+más de lo que se gasta, guardar la sobra en la despensa, levantar con ella la
+siguiente obra, y que esa obra permita traer más todavía. Ocho niveles de
+rancho, de la choza de palma a los seis años a la casa propia a los veintiuno.
 
 ---
 
@@ -62,11 +68,15 @@ src/
     caza.js                 apuntado, viento, desvío y trampas
     cocina.js               fogón y taller
     hogar.js                lo que la casa consume y el aporte del niño
+    construccion.js         el rancho: qué se puede levantar, qué cuesta,
+                            cuántos días tarda y qué da cuando está
+    familia.js              el reparto del día entre los nueve de la casa
     progresion.js           capítulos: cuándo se ofrecen y cómo se comprueban
     acciones.js             qué se puede hacer aquí y qué pasa al hacerlo
   contenido/                LOS DATOS: ampliar el juego es tocar esta carpeta
     objetos.js  cultivos.js  plantas.js  peces.js  recetas.js
     capitulos.js  dialogos.js
+    construcciones.js       los ocho niveles del rancho y las nueve obras
   render/
     renderizador.js         elige WebGPU y cae a WebGL2
     webgpu.js  wgsl.js      camino principal
@@ -79,7 +89,7 @@ src/
   ui/
     hud.js  mapa.js  paneles.js  dialogo.js  minijuegos.js  tacto.js  base.js
 test/
-  reglas.test.js            43 pruebas de las reglas
+  reglas.test.js            60 pruebas de las reglas
   mundo.test.js             25 pruebas del valle y del motor
 tools/
   empaquetar.mjs            empaquetador propio (sin dependencias)
@@ -137,6 +147,9 @@ Todo vive en `src/contenido/capitulos.js`. Un capítulo es un objeto:
 | `dias` | `meta` | días seguidos cubriendo la casa |
 | `estrellas` | `meta` | estrellas acumuladas |
 | `valor` | `meta` | valor de cambio de lo que se tiene |
+| `lugar` | `lugar` | haber llegado a un sitio del valle |
+| `rancho` | `meta` | nivel del rancho alcanzado (1 a 8) |
+| `construccion` | `construccion`, `meta` | nivel levantado de esa obra |
 
 Los contadores se miden **desde que empieza el capítulo**, no desde el principio
 de la partida: lo que ya habías hecho antes no cuenta.
@@ -151,6 +164,90 @@ Están en `PERSONAJES`, en el mismo archivo. Para añadir uno:
 ```js
 tio: { nombre: 'Tío Goyo', color: '#c9b26e' },
 ```
+
+Hoy son: `nino` (Vos), `mama`, `papa`, `mayor`, `hermana`, `chiquito`, `abuela`,
+`perro` y `narrador`. Los hermanos que hablan son tres, no siete: la historia es
+la del niño, y una casa con siete voces no se sigue. Los otros están en el
+reparto del día (`reglas/familia.js`), que sí son nueve.
+
+---
+
+## 3 bis. El rancho: los niveles y las obras
+
+Aquí es donde se hace crecer el juego a lo largo. Todo vive en
+`src/contenido/construcciones.js`, y también son datos.
+
+**Un nivel del rancho** (la espina; hoy son ocho, de los 6 a los 21 años):
+
+```js
+{
+  nivel: 4, edad: 10,
+  nombre: 'Paredes de bahareque', icono: '🏡',
+  descripcion: 'Varas y barro. Ya no entra el aire por todos lados.',
+  coste: { madera: 30, barro: 40, bejuco: 20 },   // sale de la despensa
+  dias: 6,                                        // días de obra
+  requiere: { pila: 1 },                          // qué hay que tener antes
+  abre: ['El corral', 'El horno'],                // se avisa al terminarlo
+  efecto: { abrigo: 2, animoCasa: 4 },
+}
+```
+
+**Una construcción** (hoy nueve, cada una con sus niveles):
+
+```js
+{
+  id: 'gallinero', nombre: 'El gallinero', icono: '🐓',
+  requiereRancho: 2,                    // nivel mínimo de rancho para empezarla
+  descripcion: 'Cuatro gallinas y un gallo.',
+  niveles: [
+    { coste: { madera: 12, bejuco: 8 }, dias: 2,
+      texto: 'Cuatro gallinas', efecto: { huevosDia: 1 } },
+  ],
+}
+```
+
+**La regla que da forma a todo:** ninguna construcción pasa del nivel del
+rancho. `topeDe(rancho, id)` es `nivel del rancho − (requiereRancho − 1)`, así
+que subir el rancho es siempre lo que destraba lo demás. Si al añadir algo se
+rompe la cadena, la prueba *«se puede subir de la choza de palma hasta la casa
+propia»* lo dice: recorre los ocho niveles levantando lo que haga falta y falla
+si queda un callejón sin salida.
+
+**Los efectos** se suman en `efectos(rancho)` (`reglas/construccion.js`). Si
+inventás una clave nueva hay que declararla en el objeto `total` de esa función,
+o se sumará sobre `undefined` y saldrá `NaN`. Las que hay: `cocinar`,
+`capacidadDespensa`, `cargaExtra`, `aguaGuardada`, `aguaAhorrada`, `aguaDia`,
+`huevosDia`, `carneDia`, `lecheDia`, `abonoDia`, `huertaDia`, `plazasMilpa`,
+`abrigo`, `animoCasa`, `lenaPorReceta`, `cocinaRapida`, `perdidaCosecha`,
+`hornear`, `cocerTeja`, `semillaSegura`, `lenaSeca`, `propia`. Las booleanas se
+quedan en `true` en cuanto algo las enciende; `cocinaRapida` se queda con la
+menor; `abrigo` y `capacidadDespensa` con la mayor; el resto se suman.
+
+**La edad sale del nivel del rancho**, no del calendario: `edadEn(nivel)`. Subir
+la casa es crecer. De ahí sale la cuota que se le pide al niño cada día
+(`cuota(edad, {cocina})` en `reglas/hogar.js`), que va de los 6 litros de los
+seis años a la casa entera a los veintiuno.
+
+## 3 ter. La familia y el reparto del día
+
+`src/reglas/familia.js`. Nueve en la casa contando al niño. Cada persona tiene
+`fuerza` y una lista de lo que `puede` hacer, y eso es todo lo que hace falta
+para añadir a alguien:
+
+```js
+{ id: 'tio', nombre: 'Tío Goyo', rol: 'tio', icono: '👨', fuerza: 1.5,
+  puede: ['milpa', 'obra', 'lena'], nota: 'Viene en cosecha y se va.' },
+```
+
+Las tareas son `agua`, `lena`, `monte`, `milpa`, `obra` y `casa`. Lo que rinden
+está en `rendir(persona, tarea, ctx)`: el agua y la leña por fuerza, el monte
+por estación. Al cerrar el día, `trabajoDelDia()` devuelve lo que trajeron, la
+fuerza puesta en la obra (que adelanta días) y quién quedó en la casa.
+
+**Cuidado con una cosa al tocar esto:** lo que traiga la familia va a la
+despensa, pero **no cuenta como el mandado del niño**. Su cuota se mide contra
+`hogar.traidoHoy`, que solo crece cuando entrega él. Si eso se rompe, mandar a
+un hermano por agua le hace el mandado y el día deja de significar nada.
 
 ---
 
@@ -200,7 +297,12 @@ el reloj, comprobar el capítulo).
 | Duración del día (16 min reales) | `src/nucleo/reloj.js`, `minutosPorDia` |
 | Carga que aguanta el niño | `src/reglas/inventario.js`, `CARGA_BASE` |
 | Gasto de hambre, sed y aguante | `src/reglas/necesidades.js`, `ACTIVIDADES` |
-| Consumo diario de la casa | `src/reglas/hogar.js`, `CONSUMO` |
+| Consumo diario de la casa (nueve personas) | `src/reglas/hogar.js`, `CONSUMO` |
+| Lo que se le pide al niño según su edad | `src/reglas/hogar.js`, `cuota()` |
+| Coste y días de cada nivel del rancho | `src/contenido/construcciones.js`, `NIVELES_RANCHO` |
+| Coste y días de las obras | `src/contenido/construcciones.js`, `CONSTRUCCIONES` |
+| Cuánto adelanta un ayudante en la obra | `src/reglas/construccion.js`, `avanzarObra` (0,5 días por ayudante) |
+| Lo que rinde cada quien en su tarea | `src/reglas/familia.js`, `rendir()` |
 | Curva de niveles | `src/reglas/habilidades.js`, `xpParaNivel` |
 | Días y agua de cada cultivo | `src/contenido/cultivos.js` |
 | Probabilidad de lluvia por mes | `src/mundo/clima.js`, `LLUVIA_MES` |
@@ -236,7 +338,7 @@ automático, WebGL2 y WebGPU, y *Calidad* baja la hierba y el mapa de sombras.
 ## 7. Pruebas
 
 ```bash
-npm test                    # las 68 pruebas: reglas del juego y mundo
+npm test                    # las 85 pruebas: reglas del juego y mundo
 npm run build               # regenera dist/monte-adentro.html
 npm run dev                 # servidor local en http://localhost:4173
 npm run verify              # pruebas + empaquetado

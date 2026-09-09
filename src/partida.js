@@ -116,7 +116,7 @@ export class Partida {
     this.hud.ponerBotones([
       { texto: '🧺 Canasta', titulo: 'Tecla I', alPulsar: () => this.abrirPanel('inventario') },
       { texto: '📖 Diario', titulo: 'Tecla J', alPulsar: () => this.abrirPanel('diario') },
-      { texto: '🛖 Rancho', titulo: 'Lo que se puede levantar', clase: 'primario',
+      { texto: '🛖 Rancho', titulo: 'Tecla R · lo que se puede levantar', clase: 'primario',
         alPulsar: () => { this.abrirPanel('rancho'); this.audio.clic(); } },
       { texto: '🗺️ Mapa', titulo: 'Tecla Q', alPulsar: () => { this.mapa.alternar(); this.audio.clic(); } },
       { texto: '⏸', titulo: 'Tecla Esc', alPulsar: () => this.abrirPanel('pausa') },
@@ -602,6 +602,7 @@ export class Partida {
     if (t.consumir('mapa')) { this.mapa.alternar(); this.audio.clic(); }
     if (t.consumir('inventario')) this.abrirPanel('inventario');
     if (t.consumir('diario')) this.abrirPanel('diario');
+    if (t.consumir('rancho')) this.abrirPanel('rancho');
     if (t.consumir('pausa')) this.abrirPanel('pausa');
     if (t.consumir('accion') && this.opciones.length) {
       const primera = this.opciones.find((o) => !o.desactivada);

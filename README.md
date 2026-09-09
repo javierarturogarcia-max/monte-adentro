@@ -1,10 +1,14 @@
 # 🌄 Monte Adentro
 
-**Un niño que se cría en el campo.** Aprende a cazar con hondilla, a leer el río
-para pescar, a rebuscar comida en el monte, a sembrar y cuidar su milpa, y a
-subir agua y leña a una casa donde no hay luz ni tubería. Cada día que la casa
-tiene lo que necesita cuenta; cada cosa que aprende le abre algo que ayer no
-podía hacer.
+**Un niño de seis años que se cría en el campo, y una choza de palma.** No hay
+luz, no hay gas y no hay agua: por agua se va al río. El primer mandado es el
+que fue de verdad —*andá a acarrear agua, ve a buscar leña*— y de ahí no se sale
+más que trabajando.
+
+De esa choza salen ocho niveles, de los 6 a los 21 años, hasta la casa propia.
+Cada nivel abre lo que el niño puede hacer, y nada de lo que se levanta puede
+pasar del nivel del rancho. Empezar de casi nada y verlo crecer: ese es el
+juego.
 
 Juego 3D completo, **sin una sola dependencia y sin un solo archivo de arte**:
 el motor gráfico, el empaquetador y hasta los árboles están escritos aquí.
@@ -15,7 +19,7 @@ el motor gráfico, el empaquetador y hasta los árboles están escritos aquí.
 
 ```bash
 npm run dev     # servidor local en http://localhost:4173
-npm test        # 68 pruebas (reglas del juego y mundo)
+npm test        # 85 pruebas (reglas del juego y mundo)
 npm run build   # genera dist/monte-adentro.html, el juego en un solo archivo
 ```
 
@@ -39,6 +43,7 @@ Chrome o Edge de escritorio entra por WebGPU y va más fino.
 | Interactuar | E o Enter | X | botón ✋ |
 | Acción / minijuego | Espacio | A | botón ⚡ |
 | Mapa del valle | Q | — | botón 🗺️ |
+| El rancho | R | — | botón 🏠 |
 | Canasta · Diario · Pausa | I · J · Esc | Y · Start | botones de arriba |
 | Segunda y tercera opción | 1, 2, 3 | — | tocar la opción |
 
@@ -48,6 +53,49 @@ cerrar el día se puntúa con estrellas.
 
 **Lo que decide una partida no es la puntería, es el peso.** Un cántaro lleno
 son diez kilos y el niño aguanta diecisiete: cada viaje al río es una decisión.
+
+---
+
+## El rancho: el juego por niveles
+
+Todo cuelga de aquí. El rancho es la espina, y las nueve construcciones cuelgan
+de él. Es el panel que se abre con **R**, y siempre tiene a la vista lo
+siguiente que hacer.
+
+| | Nivel | Edad | Lo que abre |
+|---|---|---|---|
+| 🛖 | Choza de palma | 6 | Cocinar en el suelo, dormir |
+| 🏚️ | Choza con corredor | 7 | La leña se queda seca |
+| 🏠 | Rancho con troje | 8 | Guardar la cosecha, dos cuadros más de milpa |
+| 🏡 | Paredes de bahareque | 10 | Corral y horno |
+| 🧱 | Casa de adobe | 12 | La huerta junto a la casa |
+| 🏘️ | Techo de teja | 14 | Se aguanta el aguacero |
+| 🏛️ | Casa con cuartos | 17 | Un pozo propio: se acabó el viaje al río |
+| 🌅 | Tu propia casa | 21 | Tu parcela, tu familia |
+
+**Las nueve construcciones** — fogón, gallinero, troje, pila, corral, horno,
+huerta, pozo y parcela — se levantan con materiales de la despensa y tardan
+días. Solo una obra a la vez. Y la regla dura que le da forma a todo: *ninguna
+construcción puede pasar del nivel del rancho*. Si querés el gallinero de nivel
+3, primero el rancho. Son 118 días de obra de la choza a la casa propia.
+
+## La familia
+
+Son nueve: el padre, la madre y siete hijos —cinco varones y dos hembras—. Cada
+día se reparte quién trae agua, quién junta leña, quién rebusca en el monte,
+quién cuida la milpa, quién ayuda en la obra y quién sostiene el oficio de la
+casa. En la obra, los que ayudan adelantan días.
+
+Ellos no son el juego: son con lo que el niño avanza. Dos reglas lo sostienen:
+
+- **El mandado es del niño.** Se le juzga por lo que trajo *él*, no por lo que
+  haya en la despensa. Si no fuera así, mandar a un hermano por agua le haría el
+  mandado y el día no valdría nada. Lo que traiga la familia llena la despensa:
+  esa es la reserva con la que se levanta el rancho.
+- **La comida no se le pide hasta que hay fogón.** Mientras se cocine en el
+  suelo no tiene con qué. Cada exigencia nueva llega junto con lo que hace falta
+  para cumplirla. Y la cuota crece con la edad, hasta que a los veintiuno la
+  casa entera es suya.
 
 ---
 
@@ -61,7 +109,8 @@ son diez kilos y el niño aguanta diecisiete: cada viaje al río es una decisió
 | **Orientación** | Mapa del valle dibujado del propio relieve, con la casa, la poza, la milpa, el cono de visión y la bandera del objetivo (tecla Q) |
 | **Mundo** | Valle de 240 × 240 m generado de una semilla, con río tallado, monte, potrero y milpa. La misma semilla da el mismo valle en cualquier dispositivo |
 | **Simulación** | Ciclo día/noche, dos estaciones, chubascos por hora, crecimiento de cultivos día a día con humedad, maleza y plaga, y fauna que te oye y te huele según de dónde venga el viento |
-| **Historia** | 8 capítulos con objetivos comprobables, escritos como datos para poder ampliarlos |
+| **Progresión** | Ocho niveles de rancho y nueve construcciones, con coste en materiales, días de obra y desbloqueos; ninguna construcción pasa del nivel del rancho |
+| **Historia** | 10 capítulos con objetivos comprobables, escritos como datos para poder ampliarlos |
 | **Estrategia** | El peso que se carga, el mes que es, la hora a la que pica el pez y la dirección del viento |
 | **Acción** | El pulso con el pez, el tiro con la hondilla y el hacha rajando leña |
 | **Tamaño** | 385 kB en un solo archivo, funciona sin conexión |
@@ -79,12 +128,14 @@ src/
   nucleo/             bucle de paso fijo, reloj, entrada, estado, sonido, matemáticas
   mundo/              terreno, dispersión, clima, fauna
   reglas/             inventario, necesidades, habilidades, cultivo, caza,
-                      pesca, recolección, cocina, hogar, progresión, acciones
-  contenido/          objetos, cultivos, plantas, peces, recetas, capítulos
+                      pesca, recolección, cocina, hogar, progresión, acciones,
+                      construcción (el rancho) y familia (el reparto del día)
+  contenido/          objetos, cultivos, plantas, peces, recetas, capítulos,
+                      construcciones (los ocho niveles y las nueve obras)
   render/             WebGPU + WebGL2, shaders, geometría procedural, cámara
   vista/              simulación → instancias que dibujar; el niño animado
   ui/                 HUD, mapa del valle, paneles, diálogo, minijuegos, táctil
-test/                 68 pruebas con node --test
+test/                 85 pruebas con node --test
 tools/                empaquetador propio, build y servidor de desarrollo
 ```
 
@@ -105,7 +156,8 @@ que da el monte.
 dónde se toca cada cosa y las perillas de equilibrio.
 
 Y la historia que se está escribiendo aquí no es inventada: sale de recuerdos
-reales. Lo que hay hoy en `capitulos.js` es un andamio hasta que lleguen.
+reales. El primer mandado, la choza, los nueve de la casa, los garrobos al
+mediodía: eso pasó. Lo que sigue se irá escribiendo según lleguen más.
 
 👉 **[docs/RECUERDOS.md](docs/RECUERDOS.md)** — dónde volcarlos, y qué parte del
 juego toca cada cosa que se cuente.
