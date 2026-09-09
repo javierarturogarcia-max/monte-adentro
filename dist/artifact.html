@@ -108,6 +108,14 @@ html, body {
 #objetivos li.hecho .marca { background: var(--j-verde-2); border-color: var(--j-verde); }
 #objetivos li.hecho span { color: var(--j-hueso-2); text-decoration: line-through; }
 #objetivos .cuenta { font-size: 11px; color: var(--j-maiz); font-variant-numeric: tabular-nums; }
+.rancho-hud {
+  margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--j-borde);
+  display: grid; gap: 3px;
+}
+.rancho-nivel { font-size: 12px; font-weight: 700; }
+.rancho-paso { font-size: 11px; color: var(--j-hueso-2); line-height: 1.45; }
+.rancho-paso.listo { color: var(--j-verde); font-weight: 600; }
+.rancho-paso.obra { color: var(--j-fuego); }
 
 /* -------------------------------------------------------- necesidades */
 #necesidades {
@@ -247,7 +255,7 @@ html, body {
 .cuerpo::-webkit-scrollbar-thumb { background: var(--j-borde-2); border-radius: 9px; }
 
 /* rejilla de objetos */
-.rejilla-obj { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 9px; }
+.rejilla-obj { display: grid; grid-template-columns: repeat(auto-fill, minmax(152px, 1fr)); gap: 9px; }
 .obj {
   display: flex; align-items: center; gap: 10px; padding: 9px 11px;
   background: rgba(246, 239, 227, 0.06); border: 1px solid var(--j-borde);
@@ -277,6 +285,56 @@ html, body {
   background: rgba(123, 182, 98, 0.18); border: 1px solid rgba(123, 182, 98, 0.34);
 }
 .pildora.bloqueada { background: rgba(246, 239, 227, 0.05); border-color: var(--j-borde); color: var(--j-hueso-2); }
+
+/* rancho y familia */
+.rancho-cima { padding: 2px 0 14px; border-bottom: 1px solid var(--j-borde); margin-bottom: 14px; }
+.rancho-cima .riel { height: 8px; border-radius: 5px; background: rgba(0, 0, 0, 0.42); overflow: hidden; }
+.rancho-cima .relleno { height: 100%; background: linear-gradient(90deg, var(--j-verde-2), var(--j-maiz)); }
+.obra {
+  padding: 13px 15px; border-radius: var(--j-radio-s); margin-bottom: 10px;
+  background: rgba(246, 239, 227, 0.05); border: 1px solid var(--j-borde);
+}
+.obra.principal { border-color: rgba(240, 185, 92, 0.5); background: rgba(240, 185, 92, 0.09); }
+.obra.apagada { opacity: 0.5; }
+.obra .fila { display: flex; align-items: center; gap: 11px; }
+.obra .nombre { font-weight: 700; font-size: 14px; }
+.obra .detalle { font-size: 11.5px; color: var(--j-hueso-2); line-height: 1.5; }
+.obra .dias {
+  margin-left: auto; font-size: 11px; color: var(--j-maiz); white-space: nowrap;
+  padding: 3px 9px; border-radius: 999px; background: rgba(240, 185, 92, 0.14);
+}
+.obra .riel { height: 7px; border-radius: 4px; background: rgba(0, 0, 0, 0.42); overflow: hidden; }
+.obra .relleno { height: 100%; background: linear-gradient(90deg, var(--j-fuego), var(--j-maiz)); }
+.obra .materiales { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.material {
+  font-size: 10.5px; padding: 3px 8px; border-radius: 999px;
+  background: rgba(246, 239, 227, 0.06); border: 1px solid var(--j-borde);
+  font-variant-numeric: tabular-nums;
+}
+.material.hay { border-color: rgba(123, 182, 98, 0.45); color: var(--j-verde); }
+.material.falta { border-color: rgba(224, 90, 78, 0.4); color: #f0a89f; }
+.obra .abre {
+  margin-top: 9px; padding-top: 8px; border-top: 1px dashed var(--j-borde);
+  font-size: 11px; color: var(--j-maiz);
+}
+.persona {
+  padding: 11px 13px; border-radius: var(--j-radio-s); margin-bottom: 8px;
+  background: rgba(246, 239, 227, 0.05); border: 1px solid var(--j-borde);
+}
+.persona .fila { display: flex; align-items: center; gap: 10px; }
+.persona .nombre { font-weight: 700; font-size: 13px; }
+.persona .detalle { font-size: 11px; color: var(--j-hueso-2); }
+.tareas { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.pildora-tarea {
+  font-size: 11px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  background: rgba(246, 239, 227, 0.05); border: 1px solid var(--j-borde);
+  color: var(--j-hueso-2); font-family: inherit; transition: var(--j-suave);
+}
+.pildora-tarea:hover { color: var(--j-hueso); border-color: var(--j-borde-2); }
+.pildora-tarea.activa {
+  background: rgba(240, 185, 92, 0.18); border-color: rgba(240, 185, 92, 0.55); color: var(--j-hueso);
+  font-weight: 600;
+}
 
 /* capitulos */
 .capitulo {
@@ -396,7 +454,9 @@ html, body {
 .resumen-dia { text-align: center; display: grid; gap: 14px; }
 .resumen-dia .estrellas { font-size: 34px; letter-spacing: 6px; }
 .resumen-dia .frase { font-family: var(--j-titulo); font-size: 16px; line-height: 1.6; }
-.resumen-dia .cifras { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.cifras { display: flex; gap: 10px; flex-wrap: wrap; }
+.cifras .cifra { flex: 1 1 0; min-width: 96px; }
+.resumen-dia .cifras { justify-content: center; }
 .cifra {
   padding: 10px 15px; border-radius: var(--j-radio-s); min-width: 96px;
   background: rgba(246, 239, 227, 0.06); border: 1px solid var(--j-borde);
@@ -408,6 +468,8 @@ html, body {
 .vacio { text-align: center; padding: 30px 16px; color: var(--j-hueso-2); font-size: 13px; }
 .fila-botones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .nota { font-size: 11.5px; color: var(--j-hueso-2); line-height: 1.6; }
+.nota-titulo { font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--j-hueso-2); margin: 0 0 7px; opacity: .85; }
 .oculto { display: none !important; }
 
 @media (max-width: 720px) {
@@ -3189,6 +3251,8 @@ function repartir(terreno, op = {}) {
         recursos.push({ id: `m${idRecurso++}`, tipo: 'mata', especie, x, y, z, planta });
       } else if (especie === 'seco') {
         recursos.push({ id: `l${idRecurso++}`, tipo: 'lena', especie, x, y, z, planta });
+      } else if (especie === 'palmera') {
+        recursos.push({ id: `p${idRecurso++}`, tipo: 'palmera', especie, x, y, z, planta });
       }
     }
   }
@@ -3374,6 +3438,14 @@ const PERFILES = {
     zonas: ['casa'], horas: [[5.5, 18.5]], objetivo: 5, grupo: [2, 3],
     presa: null, xp: 0, dificultad: 0.2, radioTiro: 6,
   },
+  garrobo: {
+    nombre: 'garrobo', malla: 'garrobo', escala: 1, altura: 0.06, calor: true,
+    // Se asolea quieto en la piedra y arranca como un rayo. Ni oye ni huele
+    // mucho: al garrobo hay que llegarle de frente y sin moverse.
+    velocidad: 0.45, huida: 11, radioVista: 15, oido: 0.45, olfato: 0.25,
+    zonas: ['monte', 'ribera', 'potrero'], horas: [[10, 16.5]], objetivo: 5, grupo: [1, 2],
+    presa: { objeto: 'carne_garrobo', cantidad: 1 }, xp: 18, dificultad: 0.72, radioTiro: 13,
+  },
   pez: {
     nombre: 'pez', malla: 'pez', escala: 1, altura: -0.35, nada: true,
     velocidad: 1.3, huida: 4, radioVista: 7, oido: 0.6, olfato: 0,
@@ -3401,6 +3473,11 @@ class Fauna {
     // Con lluvia fuerte los animales se recogen; el pez, al contrario, pica mas.
     if (clima?.lluvia > 0.5) n = Math.round(n * (p.nada ? 1.25 : 0.45));
     if (clima?.tormenta && !p.nada) n = Math.round(n * 0.3);
+    // El garrobo es bicho de verano: en invierno casi no sale a la piedra.
+    if (p.calor) {
+      if (clima?.estacion === 'lluvias') n = Math.round(n * 0.3);
+      if ((clima?.temperatura ?? 26) < 26) n = Math.round(n * 0.5);
+    }
     return Math.max(0, n);
   }
 
@@ -4050,7 +4127,144 @@ function parcela() {
 }
 
 // ------------------------------------------------------------------ la casa
-/** El rancho: adobe, teja y corredor. Es el centro del juego. */
+/**
+ * El rancho, segun el nivel al que se haya levantado.
+ *
+ * Empieza siendo lo que fue: cuatro horcones, palma arriba y el suelo de
+ * tierra. Nivel a nivel le salen corredor, troje, paredes de bahareque, adobe,
+ * teja y cuartos. Es la unica malla del juego que cambia con la partida, y es
+ * a proposito: el jugador tiene que VER lo que ha levantado.
+ */
+function choza(nivel = 1) {
+  const n = Math.max(1, Math.min(8, nivel | 0));
+  const paredes = n >= 5 ? 'adobe' : n >= 4 ? 'bahareque' : 'abierta';
+  const techo = n >= 6 ? 'teja' : 'palma';
+  const corredor = n >= 2;
+  const troje = n >= 3;
+  const cuartos = n >= 7;
+  const ancho = n >= 7 ? 5.4 : n >= 5 ? 4.6 : 4;
+  const fondo = n >= 7 ? 4.2 : n >= 5 ? 3.6 : 3.2;
+  const alto = n >= 5 ? 2.3 : 2;
+
+  return construir(`choza_${n}`, (c) => {
+    const horcon = [0.42, 0.33, 0.22];
+    // Horcones: siempre estan, hasta cuando ya hay paredes.
+    for (const sx of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        c.cilindro({ radio: 0.11, alto, lados: 6,
+          en: [sx * ancho / 2, 0, sz * fondo / 2], color: horcon });
+      }
+    }
+
+    if (paredes === 'abierta') {
+      // Cana rajada entre horcon y horcon: se ve el fuego desde fuera.
+      for (const sz of [-1, 1]) {
+        for (let k = 0; k < 11; k++) {
+          const x = -ancho / 2 + (k / 10) * ancho;
+          if (sz > 0 && Math.abs(x) < 0.55) continue;   // el hueco de la puerta
+          c.cilindro({ radio: 0.035, alto: alto * 0.92, lados: 4,
+            en: [x, 0, sz * fondo / 2], color: [0.58, 0.48, 0.30] });
+        }
+      }
+      for (const sx of [-1, 1]) {
+        for (let k = 0; k < 9; k++) {
+          c.cilindro({ radio: 0.035, alto: alto * 0.92, lados: 4,
+            en: [sx * ancho / 2, 0, -fondo / 2 + (k / 8) * fondo], color: [0.58, 0.48, 0.30] });
+        }
+      }
+    } else {
+      const color = paredes === 'adobe' ? PALETA.adobe : [0.48, 0.38, 0.28];
+      c.caja({ ancho, alto, fondo, color });
+      // Puerta y ventanas: el hueco se marca con tablas oscuras.
+      c.caja({ ancho: 1, alto: alto * 0.85, fondo: 0.12, en: [0, 0, fondo / 2 + 0.01],
+        color: [0.28, 0.19, 0.13] });
+      if (n >= 5) {
+        for (const sx of [-1, 1]) {
+          c.caja({ ancho: 0.7, alto: 0.6, fondo: 0.12,
+            en: [sx * ancho * 0.3, alto * 0.5, fondo / 2 + 0.01], color: [0.15, 0.15, 0.17] });
+        }
+      }
+    }
+
+    // El suelo es de tierra hasta que hay adobe.
+    c.rejilla({ ancho: ancho + 0.4, fondo: fondo + 0.4, divX: 2, divZ: 2,
+      alturaEn: () => 0.03, color: n >= 5 ? [0.62, 0.56, 0.48] : PALETA.tierra });
+
+    // --- techo
+    const alero = 0.55;
+    if (techo === 'palma') {
+      // Cumbrera y palma cruzada: se ve la hoja, no una plancha.
+      c.cilindro({ radio: 0.07, alto: ancho + alero, lados: 5,
+        en: [-(ancho + alero) / 2, alto + 0.72, 0], giroY: Math.PI / 2, inclina: Math.PI / 2,
+        color: horcon });
+      for (const lado of [-1, 1]) {
+        for (let k = 0; k < 14; k++) {
+          const x = -ancho / 2 - alero / 2 + (k / 13) * (ancho + alero);
+          c.hoja({ largo: fondo * 0.78, ancho: 0.5, curva: 0.22, tramos: 3,
+            en: [x, alto + 0.7, 0], giroY: lado > 0 ? 0 : Math.PI,
+            inclina: 1.05, color: tinte(PALETA.paja, (k % 3) * 0.08 - 0.08) });
+        }
+      }
+    } else {
+      for (const lado of [-1, 1]) {
+        c.caja({ ancho: ancho + alero, alto: 0.14, fondo: fondo * 0.78,
+          en: [0, alto + 0.18, lado * fondo * 0.28], inclina: lado * 0.42, color: PALETA.teja });
+      }
+      c.caja({ ancho: ancho + alero + 0.1, alto: 0.14, fondo: 0.3,
+        en: [0, alto + 0.78, 0], color: [0.44, 0.20, 0.14] });
+    }
+
+    // --- corredor delante
+    if (corredor) {
+      const largoCorredor = 1.7;
+      for (const x of [-ancho * 0.4, 0, ancho * 0.4]) {
+        c.cilindro({ radio: 0.09, alto: alto * 0.92, lados: 5,
+          en: [x, 0, fondo / 2 + largoCorredor], color: horcon });
+      }
+      if (techo === 'palma') {
+        for (let k = 0; k < 12; k++) {
+          const x = -ancho / 2 + (k / 11) * ancho;
+          c.hoja({ largo: largoCorredor * 1.15, ancho: 0.46, curva: 0.18, tramos: 2,
+            en: [x, alto + 0.42, fondo / 2], inclina: 1.35,
+            color: tinte(PALETA.paja, (k % 2) * 0.1 - 0.05) });
+        }
+      } else {
+        c.caja({ ancho: ancho + 0.3, alto: 0.12, fondo: largoCorredor + 0.5,
+          en: [0, alto + 0.3, fondo / 2 + largoCorredor / 2], inclina: 0.28, color: PALETA.teja });
+      }
+      c.rejilla({ ancho: ancho + 0.2, fondo: largoCorredor + 0.4, divX: 2, divZ: 2,
+        alturaEn: () => 0.05, en: [0, 0, fondo / 2 + largoCorredor / 2], color: [0.55, 0.48, 0.40] });
+    }
+
+    // --- troje: la mazorca guardada en alto, sobre cuatro patas
+    if (troje) {
+      const tx = ancho / 2 + 1.9;
+      for (const sx of [-1, 1]) {
+        for (const sz of [-1, 1]) {
+          c.cilindro({ radio: 0.07, alto: 0.9, lados: 4, en: [tx + sx * 0.5, 0, sz * 0.5], color: horcon });
+        }
+      }
+      c.caja({ ancho: 1.4, alto: 1.1, fondo: 1.4, en: [tx, 0.9, 0], color: [0.60, 0.50, 0.30] });
+      for (let k = 0; k < 8; k++) {
+        c.hoja({ largo: 1.1, ancho: 0.4, curva: 0.2, tramos: 2,
+          en: [tx - 0.7 + (k / 7) * 1.4, 2.0, 0], inclina: 1.1, color: PALETA.paja });
+      }
+    }
+
+    // --- segundo volumen: los cuartos
+    if (cuartos) {
+      c.caja({ ancho: 2.6, alto: alto, fondo: fondo * 0.9,
+        en: [-(ancho / 2 + 1.3), 0, 0], color: PALETA.adobe });
+      for (const lado of [-1, 1]) {
+        c.caja({ ancho: 3, alto: 0.14, fondo: fondo * 0.55,
+          en: [-(ancho / 2 + 1.3), alto + 0.16, lado * fondo * 0.22],
+          inclina: lado * 0.4, color: PALETA.teja });
+      }
+    }
+  });
+}
+
+/** El rancho ya crecido del todo. Se conserva por compatibilidad. */
 function casa() {
   return construir('casa', (c) => {
     c.caja({ ancho: 5.2, alto: 2.5, fondo: 4.2, color: PALETA.adobe });
@@ -4222,6 +4436,50 @@ function pajaro(rnd = rnd0) {
   });
 }
 
+/**
+ * Garrobo: cuerpo largo y pegado al suelo, cresta en el lomo y una cola que es
+ * media mitad del bicho. Se le reconoce de lejos por como se asolea en la
+ * piedra, quieto, hasta que arranca.
+ */
+function garrobo(rnd = rnd0) {
+  return construir('garrobo', (c) => {
+    const col = tinte([0.34, 0.33, 0.24], (rnd() - 0.5) * 0.3);
+    const panza = tinte([0.52, 0.50, 0.38], (rnd() - 0.5) * 0.2);
+    // Cuerpo aplastado contra el suelo.
+    c.esfera({ radio: 0.17, lados: 8, anillos: 5, achatado: 0.45, en: [0, 0.09, 0],
+      escala: [0.75, 1, 1.9], color: col });
+    c.esfera({ radio: 0.13, lados: 6, anillos: 4, achatado: 0.3, en: [0, 0.07, 0],
+      escala: [0.7, 1, 1.7], color: panza });
+    // Cabeza y papada.
+    c.esfera({ radio: 0.09, lados: 7, anillos: 5, achatado: 0.7, en: [0, 0.1, 0.34],
+      escala: [0.85, 1, 1.35], color: col });
+    c.esfera({ radio: 0.045, lados: 5, anillos: 3, achatado: 0.9, en: [0, 0.06, 0.38], color: [0.55, 0.42, 0.24] });
+    // Cresta: la fila de espinas del lomo.
+    for (let k = 0; k < 9; k++) {
+      const t = k / 8;
+      c.cono({ radio: 0.022 - t * 0.008, alto: 0.075 - t * 0.03, lados: 3,
+        en: [0, 0.17, 0.28 - t * 0.7], color: tinte(col, -0.25) });
+    }
+    // Cola larga, en tramos que se afinan.
+    let z = -0.3, r = 0.075;
+    for (let k = 0; k < 5; k++) {
+      c.cilindro({ radio: r, radioSuperior: r * 0.72, alto: 0.16, lados: 5,
+        en: [0, 0.08, z], inclina: Math.PI / 2,
+        color: k % 2 ? tinte(col, -0.18) : col });
+      z -= 0.15; r *= 0.74;
+    }
+    // Cuatro patas abiertas, como las tiene de verdad.
+    for (const lado of [-1, 1]) {
+      for (const [pz, largo] of [[0.2, 0.13], [-0.16, 0.15]]) {
+        c.cilindro({ radio: 0.028, alto: largo, lados: 4, en: [lado * 0.1, 0.07, pz],
+          inclina: 1.15, giroY: lado * 1.2, color: col });
+        c.esfera({ radio: 0.035, lados: 5, anillos: 3, achatado: 0.4,
+          en: [lado * 0.19, 0.01, pz + 0.02], color: col });
+      }
+    }
+  });
+}
+
 function pez(rnd = rnd0) {
   return construir('pez', (c) => {
     const col = tinte(PALETA.pez, (rnd() - 0.5) * 0.3);
@@ -4369,6 +4627,7 @@ function quad() {
   __exp.mataArroz = mataArroz;
   __exp.mataTrigo = mataTrigo;
   __exp.parcela = parcela;
+  __exp.choza = choza;
   __exp.casa = casa;
   __exp.fogon = fogon;
   __exp.gallinero = gallinero;
@@ -4381,6 +4640,7 @@ function quad() {
   __exp.gallina = gallina;
   __exp.perro = perro;
   __exp.pajaro = pajaro;
+  __exp.garrobo = garrobo;
   __exp.pez = pez;
   __exp.piezasNino = piezasNino;
   __exp.herramientas = herramientas;
@@ -4775,13 +5035,13 @@ class Mundo3D {
       troncos.agregar(componer([r.x, r.y, r.z], [0, r.giro || 0, 0], r.escala || 1, this.m));
     }
 
-    // --- la casa y su patio
+    // --- el rancho. Se dibuja el nivel que este levantado, y cambia en cuanto
+    // se termina una obra: ver que la choza crece es media recompensa.
     const casa = LUGARES.casa;
-    const yCasa = t.altura(casa.x, casa.z);
-    esc.lote('casa', MOD.casa(), { estatico: true })
-      .agregar(componer([casa.x, yCasa, casa.z], [0, casa.giro, 0], 1, this.m));
-    esc.lote('gallinero', MOD.gallinero(), { estatico: true })
-      .agregar(componer([casa.x + 7, t.altura(casa.x + 7, casa.z - 4), casa.z - 4], [0, 0.9, 0], 1, this.m));
+    this.yCasa = t.altura(casa.x, casa.z);
+    this.lotesChoza = {};
+    this.nivelChoza = 0;
+    this.loteGallinero = esc.lote('gallinero', MOD.gallinero(), { capacidad: 2 });
     const fog = LUGARES.fogon;
     this.yFogon = t.altura(fog.x, fog.z);
     esc.lote('fogon', MOD.fogon(), { estatico: true })
@@ -4814,7 +5074,8 @@ class Mundo3D {
     // --- lotes dinamicos (fauna, particulas, marcadores)
     this.lotesFauna = {};
     for (const [tipo, hacer] of Object.entries({
-      venado: MOD.venado, conejo: MOD.conejo, gallina: MOD.gallina, pajaro: MOD.pajaro, pez: MOD.pez,
+      venado: MOD.venado, conejo: MOD.conejo, gallina: MOD.gallina, pajaro: MOD.pajaro,
+      pez: MOD.pez, garrobo: MOD.garrobo,
     })) {
       this.lotesFauna[tipo] = esc.lote(`fauna_${tipo}`, hacer(semillaFija(tipo, 0)), { capacidad: 40 });
     }
@@ -4826,6 +5087,30 @@ class Mundo3D {
     this.loteQuad.comoCartel();
     this.loteFuego = esc.lote('fuego', MOD.quad(), { categoria: 'translucido', sombra: false, capacidad: 60 });
     this.loteFuego.comoCartel();
+  }
+
+  /**
+   * Pone la choza del nivel pedido y quita la anterior. Cada nivel tiene su
+   * propia malla, asi que solo se construye la primera vez que se ve.
+   */
+  ponerRancho(nivel, construcciones = {}) {
+    const n = Math.max(1, Math.min(8, nivel | 0));
+    for (const lote of Object.values(this.lotesChoza)) lote.reiniciar();
+    if (!this.lotesChoza[n]) {
+      this.lotesChoza[n] = this.escena.lote(`choza_${n}`, MOD.choza(n), { capacidad: 2 });
+    }
+    const casa = LUGARES.casa;
+    this.lotesChoza[n].agregar(
+      componer([casa.x, this.yCasa, casa.z], [0, casa.giro, 0], 1, this.m));
+    this.nivelChoza = n;
+
+    // El gallinero solo esta si se ha levantado.
+    this.loteGallinero.reiniciar();
+    if ((construcciones.gallinero || 0) > 0) {
+      const x = casa.x + 7, z = casa.z - 4;
+      this.loteGallinero.agregar(componer([x, this.terreno.altura(x, z), z], [0, 0.9, 0],
+        0.8 + (construcciones.gallinero || 1) * 0.2, this.m));
+    }
   }
 
   // ------------------------------------------------------------- dinamico
@@ -5990,7 +6275,13 @@ const OBJETOS = {
   piedra:      { nombre: 'Piedra', icono: '🪨', tipo: 'material', peso: 0.6, valor: 0, descripcion: 'Munición para la hondilla.' },
   fibra:       { nombre: 'Fibra', icono: '🌾', tipo: 'material', peso: 0.1, valor: 1, descripcion: 'De maguey. Se tuerce para hacer pita.' },
   pita:        { nombre: 'Pita', icono: '🧵', tipo: 'material', peso: 0.15, valor: 3, descripcion: 'Cordel. Sirve para la caña, la atarraya y las trampas.' },
-  barro:       { nombre: 'Barro', icono: '🟤', tipo: 'material', peso: 2, valor: 1, descripcion: 'De la orilla. Con él se hacen cántaros y comales.' },
+  barro:       { nombre: 'Barro', icono: '🟤', tipo: 'material', peso: 2, valor: 1, descripcion: 'De la orilla. Con él se hacen cántaros, comales y adobes.' },
+  madera:      { nombre: 'Madera', icono: '🪵', tipo: 'material', peso: 3.5, valor: 4, descripcion: 'Vara buena, labrada con machete. Con esto se levanta el rancho.' },
+  palma:       { nombre: 'Palma', icono: '🌴', tipo: 'material', peso: 0.8, valor: 3, descripcion: 'Hoja de palma para el techo. Bien puesta aguanta el invierno.' },
+  bejuco:      { nombre: 'Bejuco', icono: '🌿', tipo: 'material', peso: 0.5, valor: 2, descripcion: 'Amarra sin clavos. En el monte hay, si se sabe mirar.' },
+  adobe:       { nombre: 'Adobe', icono: '🧱', tipo: 'material', peso: 6, valor: 6, descripcion: 'Barro con zacate, secado al sol. Pesa como pesan las paredes.' },
+  teja:        { nombre: 'Teja', icono: '🟥', tipo: 'material', peso: 2.5, valor: 7, descripcion: 'Barro cocido en el horno. El día que se pone, ya no llueve dentro.' },
+  abono:       { nombre: 'Abono', icono: '💩', tipo: 'material', peso: 1.5, valor: 2, descripcion: 'Del corral y de la ceniza del fogón. La tierra lo agradece.' },
   sal:         { nombre: 'Sal', icono: '🧂', tipo: 'material', peso: 0.2, valor: 4, descripcion: 'Conserva la carne y hace comible lo insípido.' },
 
   // ----------------------------------------------------------------- crudos
@@ -6006,6 +6297,7 @@ const OBJETOS = {
   hongos:      { nombre: 'Hongos', icono: '🍄', tipo: 'crudo', peso: 0.2, valor: 6, hambre: 7, descripcion: 'Salen dos días después de la lluvia, al pie de los pinos.' },
   miel:        { nombre: 'Miel', icono: '🍯', tipo: 'comida', peso: 0.5, valor: 14, hambre: 10, animo: 12, descripcion: 'Sacarla cuesta piquetes.' },
   huevo:       { nombre: 'Huevo', icono: '🥚', tipo: 'crudo', peso: 0.15, valor: 4, hambre: 6, descripcion: 'De las gallinas del patio, si les diste de comer.' },
+  leche:       { nombre: 'Leche', icono: '🥛', tipo: 'comida', peso: 1, valor: 6, hambre: 9, sed: 12, animo: 6, descripcion: 'De la vaca, si un día se llega a tener vaca.' },
   mango:       { nombre: 'Mango', icono: '🥭', tipo: 'comida', peso: 0.35, valor: 4, hambre: 9, sed: 6, animo: 6 },
   jocote:      { nombre: 'Jocote', icono: '🍒', tipo: 'comida', peso: 0.1, valor: 3, hambre: 4, sed: 3, animo: 5 },
   mora:        { nombre: 'Mora', icono: '🫐', tipo: 'comida', peso: 0.08, valor: 3, hambre: 3, sed: 3, animo: 6 },
@@ -6013,7 +6305,9 @@ const OBJETOS = {
   pescado:     { nombre: 'Pescado', icono: '🐟', tipo: 'crudo', peso: 0.6, valor: 12, hambre: 10, descripcion: 'Del río. Crudo no se come.' },
   carne_venado: { nombre: 'Carne de venado', icono: '🥩', tipo: 'crudo', peso: 1.4, valor: 22, hambre: 16 },
   carne_conejo: { nombre: 'Carne de conejo', icono: '🍖', tipo: 'crudo', peso: 0.7, valor: 12, hambre: 11 },
-  carne_pajaro: { nombre: 'Carne de pájaro', icono: '🍗', tipo: 'crudo', peso: 0.3, valor: 7, hambre: 7 },
+  carne_pajaro: { nombre: 'Carne de pájaro', icono: '🍗', tipo: 'crudo', peso: 0.3, valor: 7, hambre: 7, descripcion: 'Chiltota, zanate, paloma de monte: lo que caiga con la hondilla.' },
+  carne_garrobo: { nombre: 'Carne de garrobo', icono: '🦎', tipo: 'crudo', peso: 0.8, valor: 14, hambre: 13, descripcion: 'Sale a asolearse en las piedras cuando aprieta el verano. Es carne de verdad.' },
+  huevo_garrobo: { nombre: 'Huevos de garrobo', icono: '🥚', tipo: 'crudo', peso: 0.2, valor: 9, hambre: 8, descripcion: 'De la hembra, en abril. Se comen y se agradecen.' },
   cuero:       { nombre: 'Cuero', icono: '🟫', tipo: 'material', peso: 1.2, valor: 16, descripcion: 'Del venado. Se cambia bien en el pueblo.' },
 
   // ---------------------------------------------------------------- cocinado
@@ -6040,6 +6334,7 @@ const OBJETOS = {
   atarraya:    { nombre: 'Atarraya', icono: '🕸️', tipo: 'herramienta', peso: 1.8, valor: 30, unica: true, descripcion: 'Red de tirar. Saca varios de una vez, pero cansa.' },
   machete:     { nombre: 'Machete', icono: '🔪', tipo: 'herramienta', peso: 1.1, valor: 18, unica: true },
   azadon:      { nombre: 'Azadón', icono: '⛏️', tipo: 'herramienta', peso: 1.6, valor: 16, unica: true },
+  guacal:      { nombre: 'Guacal', icono: '🥥', tipo: 'herramienta', peso: 0.3, valor: 2, unica: true, capacidadAgua: 4, descripcion: 'Media jícara seca. Es lo que hay cuando no hay nada: cuatro litros por viaje.' },
   cantaro:     { nombre: 'Cántaro', icono: '🏺', tipo: 'herramienta', peso: 1.5, valor: 10, unica: true, capacidadAgua: 10, descripcion: 'De barro. Aguanta diez litros del río.' },
   canasta:     { nombre: 'Canasta', icono: '🧺', tipo: 'herramienta', peso: 0.8, valor: 9, unica: true, cargaExtra: 12, descripcion: 'Al hombro caben doce kilos más.' },
   trampa:      { nombre: 'Trampa', icono: '🪤', tipo: 'herramienta', peso: 0.9, valor: 14, descripcion: 'Se deja puesta y se revisa al otro día.' },
@@ -6324,18 +6619,51 @@ __def("src/reglas/hogar.js", function (__exp, __req) {
  * casa sin luz y sin agua corriente que necesita cada dia sus litros, su lena y
  * su comida. Lo que el nino trae se apunta como aporte, y de ahi salen las
  * estrellas del dia y el animo de la familia.
+ *
+ * Regla que sostiene todo el juego: el nino se juzga por lo que trajo EL, no
+ * por lo que haya en la despensa. Si no fuera asi, mandar a un hermano por
+ * agua le haria el mandado y el dia no valdria nada. Lo que trae la familia va
+ * a la despensa como reserva: es con eso con lo que se levanta el rancho.
  */
 const { limitar, mezclar } = __req("src/nucleo/mate.js");
 const { OBJETOS } = __req("src/contenido/objetos.js");
 const { cuenta, quitar, agregar } = __req("src/reglas/inventario.js");
 
-/** Consumo diario de la casa, para tres personas. */
-const CONSUMO = { agua: 9, lena: 3, raciones: 3 };
+/**
+ * Lo que gasta la casa en un dia. Son NUEVE: el padre, la madre y siete hijos
+ * (cinco varones y dos hembras). Nueve personas beben, comen y queman lena, y
+ * ese numero es el que hace que el juego no sea un paseo.
+ */
+const CONSUMO = { agua: 18, lena: 6, raciones: 9 };
+
+/**
+ * Lo que le toca al nino de todo eso. A los seis anos no se le puede pedir la
+ * casa entera: se le manda por agua y por lena, y ya. Segun crece, le toca
+ * mas, hasta que a los veintiuno la casa es suya.
+ *
+ * Del resto se encargan los padres y los hermanos, se vea o no.
+ *
+ * La comida no se le pide hasta que hay fogon: mientras se cocine en el suelo
+ * no tiene con que, y un juego no puede reprocharle algo que todavia no puede
+ * hacer. Cada exigencia nueva llega junto con lo que hace falta para cumplirla.
+ * @param {number} edad
+ * @param {{cocina?: boolean}} op cocina: si ya hay fogon levantado
+ */
+function cuota(edad = 6, op = {}) {
+  const t = limitar((edad - 6) / 15, 0, 1);
+  const cocina = op.cocina ?? true;
+  return {
+    agua: Math.round(mezclar(6, CONSUMO.agua, t)),
+    lena: Math.round(mezclar(2, CONSUMO.lena, t)),
+    raciones: cocina ? Math.max(1, Math.round(mezclar(1, CONSUMO.raciones, t))) : 0,
+  };
+}
 
 function crearHogar() {
   return {
     despensa: {},
     animoFamilia: 62,
+    traidoHoy: {},       // lo que trajo EL nino hoy: de ahi sale su cuota
     aporteHoy: 0,
     aporteTotal: 0,
     diasCumplidos: 0,
@@ -6368,6 +6696,8 @@ function entregar(hogar, inv, id, cantidad = 1) {
   if (!hay) return { entregado: 0, aporte: 0 };
   quitar(inv, id, hay);
   agregar(hogar.despensa, id, hay, 9999);
+  if (!hogar.traidoHoy) hogar.traidoHoy = {};
+  hogar.traidoHoy[id] = (hogar.traidoHoy[id] || 0) + hay;
   const aporte = valorAporte(id, hay);
   hogar.aporteHoy += aporte;
   hogar.aporteTotal += aporte;
@@ -6398,12 +6728,22 @@ function racionesDisponibles(despensa) {
   return Math.floor(r);
 }
 
-/** Lo que le falta a la casa ahora mismo. */
-function faltantes(hogar) {
+/**
+ * Lo que le falta al nino de su parte del dia. Se mide contra lo que trajo EL
+ * hoy: el trabajo de los hermanos llena la despensa, pero no le hace el
+ * mandado. Para la comida se admite lo que haya guardado, porque un plato se
+ * sirve de la despensa aunque lo haya traido otro.
+ */
+function faltantes(hogar, edad = 6, op = {}) {
+  const c = cuota(edad, op);
+  const traido = hogar.traidoHoy || {};
   return {
-    agua: Math.max(0, CONSUMO.agua - cuenta(hogar.despensa, 'agua')),
-    lena: Math.max(0, CONSUMO.lena - cuenta(hogar.despensa, 'lena')),
-    raciones: Math.max(0, CONSUMO.raciones - racionesDisponibles(hogar.despensa)),
+    agua: Math.max(0, c.agua - (traido.agua || 0)),
+    lena: Math.max(0, c.lena - (traido.lena || 0)),
+    raciones: Math.max(0, c.raciones - racionesDisponibles(hogar.despensa)),
+    cuota: c,
+    traido: { agua: traido.agua || 0, lena: traido.lena || 0,
+      raciones: racionesDisponibles(hogar.despensa) },
   };
 }
 
@@ -6411,17 +6751,19 @@ function faltantes(hogar) {
  * Cierre del dia: la casa consume lo que hay y se juzga el dia.
  * @returns {{estrellas, faltas, texto, animoFamilia}}
  */
-function cerrarDia(hogar, dia) {
-  const falta = faltantes(hogar);
+function cerrarDia(hogar, dia, op = {}) {
+  const edad = op.edad ?? 6;
+  const c = cuota(edad, op);
+  const falta = faltantes(hogar, edad, op);
   const consumido = {
-    agua: Math.min(CONSUMO.agua, cuenta(hogar.despensa, 'agua')),
-    lena: Math.min(CONSUMO.lena, cuenta(hogar.despensa, 'lena')),
+    agua: Math.min(c.agua, cuenta(hogar.despensa, 'agua')),
+    lena: Math.min(c.lena, cuenta(hogar.despensa, 'lena')),
   };
   quitar(hogar.despensa, 'agua', consumido.agua);
   quitar(hogar.despensa, 'lena', consumido.lena);
 
   // La comida se consume empezando por lo que menos aguanta guardado.
-  let raciones = CONSUMO.raciones - falta.raciones;
+  let raciones = c.raciones - falta.raciones;
   const orden = Object.keys(hogar.despensa)
     .filter((id) => OBJETOS[id]?.tipo === 'comida')
     .sort((a, b) => (OBJETOS[a].hambre || 0) - (OBJETOS[b].hambre || 0));
@@ -6429,14 +6771,20 @@ function cerrarDia(hogar, dia) {
     while (raciones > 0 && cuenta(hogar.despensa, id) > 0) { quitar(hogar.despensa, id, 1); raciones--; }
   }
 
+  const pedidos = (c.agua > 0 ? 1 : 0) + (c.lena > 0 ? 1 : 0) + (c.raciones > 0 ? 1 : 0);
   const faltas = (falta.agua > 0 ? 1 : 0) + (falta.lena > 0 ? 1 : 0) + (falta.raciones > 0 ? 1 : 0);
-  const cubierto = 1 - faltas / 3;
-  const generosidad = limitar(hogar.aporteHoy / 34, 0, 1.35);
+  const cubierto = pedidos ? 1 - faltas / pedidos : 1;
+  // Lo que se considera "un buen dia" sube con la edad: a los seis basta con
+  // el agua y la lena; de grande se espera mucho mas.
+  const generosidad = limitar(hogar.aporteHoy / mezclar(26, 80, limitar((edad - 6) / 15, 0, 1)), 0, 1.35);
   const estrellas = faltas === 0
     ? (generosidad > 1 ? 3 : generosidad > 0.6 ? 2 : 1)
-    : (faltas === 1 ? 1 : 0);
+    : (faltas === 1 && pedidos > 1 ? 1 : 0);
 
-  hogar.animoFamilia = limitar(hogar.animoFamilia + (faltas === 0 ? 7 : -9 * faltas) + generosidad * 4, 0, 100);
+  // Si no queda nadie sosteniendo la casa, el animo cae aunque sobre la comida.
+  const sinCasa = op.faltaEnCasa ? 6 : 0;
+  hogar.animoFamilia = limitar(
+    hogar.animoFamilia + (faltas === 0 ? 7 : -9 * faltas) + generosidad * 4 - sinCasa, 0, 100);
   if (faltas === 0) {
     hogar.diasCumplidos++;
     hogar.diasSeguidos++;
@@ -6451,10 +6799,12 @@ function cerrarDia(hogar, dia) {
     : `Faltó ${[falta.agua ? 'agua' : null, falta.lena ? 'leña' : null, falta.raciones ? 'comida' : null]
         .filter(Boolean).join(' y ')}.`;
 
-  const parte = { dia, aporte: Math.round(hogar.aporteHoy), estrellas, faltas, cubierto, texto };
+  const parte = { dia, aporte: Math.round(hogar.aporteHoy), estrellas, faltas, cubierto, texto,
+    cuota: c, edad, consumido };
   hogar.historial.push(parte);
   if (hogar.historial.length > 60) hogar.historial.shift();
   hogar.aporteHoy = 0;
+  hogar.traidoHoy = {};
   return { ...parte, animoFamilia: hogar.animoFamilia };
 }
 
@@ -6469,6 +6819,7 @@ function humorFamilia(hogar) {
 }
 
   __exp.CONSUMO = CONSUMO;
+  __exp.cuota = cuota;
   __exp.crearHogar = crearHogar;
   __exp.valorAporte = valorAporte;
   __exp.entregar = entregar;
@@ -6477,6 +6828,627 @@ function humorFamilia(hogar) {
   __exp.faltantes = faltantes;
   __exp.cerrarDia = cerrarDia;
   __exp.humorFamilia = humorFamilia;
+});
+
+__def("src/contenido/construcciones.js", function (__exp, __req) {
+/**
+ * construcciones.js — El rancho y todo lo que se levanta en el.
+ *
+ * ESTA ES LA ESPINA DEL JUEGO. Todo lo demas —acarrear agua, juntar lena,
+ * cazar, sembrar— existe para alimentar esto: un rancho que empieza siendo
+ * una choza de palma y termina siendo una casa, y un nino de seis anos que
+ * termina siendo un hombre con su propia familia.
+ *
+ * Funciona como el horno de Whiteout Survival: el NIVEL DEL RANCHO manda, y
+ * ninguna construccion puede pasar de el. Para subirlo hacen falta materiales,
+ * dias de trabajo y tener antes lo que ese nivel pide. Cada nivel envejece al
+ * nino y le abre algo que ayer no podia hacer.
+ *
+ * Para anadir una construccion nueva basta con escribir una entrada aqui.
+ */
+
+/**
+ * Los ocho niveles del rancho. `edad` es la del nino al alcanzarlo: la
+ * historia entera va de los 6 anos a la casa propia.
+ */
+const NIVELES_RANCHO = [
+  {
+    nivel: 1, nombre: 'Choza de palma', edad: 6, icono: '🛖',
+    descripcion: 'Cuatro horcones, palma arriba y el suelo de tierra. No hay luz, no hay agua, no hay gas.',
+    coste: {}, dias: 0, requiere: {},
+    abre: ['Acarrear agua del río', 'Juntar leña', 'Rebuscar en el monte'],
+  },
+  {
+    nivel: 2, nombre: 'Choza con corredor', edad: 7, icono: '🏚️',
+    descripcion: 'Un alero delante para que la leña no se moje y se pueda estar cuando llueve.',
+    coste: { madera: 8, palma: 10, bejuco: 6 }, dias: 2,
+    requiere: { fogon: 1 },
+    abre: ['La leña se guarda seca', 'Gallinero'],
+    efecto: { lenaSeca: true, capacidadDespensa: 40 },
+  },
+  {
+    nivel: 3, nombre: 'Rancho con troje', edad: 8, icono: '🏠',
+    descripcion: 'Un troje de varas para guardar la mazorca. Lo que se cosecha ya no se pierde.',
+    coste: { madera: 14, bejuco: 10, palma: 8 }, dias: 3,
+    requiere: { gallinero: 1, fogon: 2 },
+    abre: ['Guardar la cosecha', 'Dos cuadros más de milpa'],
+    efecto: { capacidadDespensa: 90, plazasMilpa: 2 },
+  },
+  {
+    nivel: 4, nombre: 'Paredes de bahareque', edad: 10, icono: '🏠',
+    descripcion: 'Vara embarrada con lodo y zacate. Ya no entra el aire de noche.',
+    coste: { madera: 20, barro: 24, fibra: 14 }, dias: 4,
+    requiere: { troje: 1, pila: 1 },
+    abre: ['Corral', 'Se duerme mejor: más aguante al día siguiente'],
+    efecto: { abrigo: 0.35, capacidadDespensa: 140 },
+  },
+  {
+    nivel: 5, nombre: 'Casa de adobe', edad: 12, icono: '🏡',
+    descripcion: 'Adobes hechos en el patio, uno por uno, secados al sol.',
+    coste: { barro: 60, fibra: 24, madera: 18 }, dias: 6,
+    requiere: { corral: 1, horno: 1 },
+    abre: ['Horno de pan', 'Huerta junto a la casa'],
+    efecto: { abrigo: 0.6, capacidadDespensa: 220 },
+  },
+  {
+    nivel: 6, nombre: 'Techo de teja', edad: 14, icono: '🏡',
+    descripcion: 'Teja de barro cocido. La primera vez que llueve y no cae una gota dentro.',
+    coste: { barro: 80, madera: 26, lena: 30 }, dias: 7,
+    requiere: { huerta: 1, pila: 2 },
+    abre: ['Pozo: se acaban los viajes al río'],
+    efecto: { abrigo: 0.85, capacidadDespensa: 320 },
+  },
+  {
+    nivel: 7, nombre: 'Casa con cuartos', edad: 17, icono: '🏘️',
+    descripcion: 'Un cuarto para los varones, otro para las hembras. Ya no duermen todos en el suelo.',
+    coste: { adobe: 40, madera: 40, teja: 30 }, dias: 9,
+    requiere: { pozo: 1, troje: 2 },
+    abre: ['Bajar al pueblo a vender', 'Tu propia parcela'],
+    efecto: { abrigo: 1, capacidadDespensa: 460, cargaExtra: 6 },
+  },
+  {
+    nivel: 8, nombre: 'Tu propia casa', edad: 21, icono: '🏡',
+    descripcion: 'Levantada por vos, en tu tierra. Y alguien esperando dentro.',
+    coste: { adobe: 90, teja: 60, madera: 60 }, dias: 12,
+    requiere: { parcela: 1, horno: 2 },
+    abre: ['Empieza tu familia', 'El valle es tuyo'],
+    efecto: { abrigo: 1, capacidadDespensa: 700, cargaExtra: 10 },
+  },
+];
+
+/**
+ * Lo que se levanta dentro del rancho. Cada construccion tiene sus niveles y
+ * ninguno puede pasar del nivel del rancho: esa es la regla que hace que el
+ * juego tenga una cuesta clara en vez de mil caminos sueltos.
+ */
+const CONSTRUCCIONES = [
+  {
+    id: 'fogon', nombre: 'El fogón', icono: '🔥', requiereRancho: 1,
+    descripcion: 'Tres piedras y el comal. Sin fogón no se come caliente.',
+    niveles: [
+      { coste: { piedra: 8, lena: 4 }, dias: 1, texto: 'Tres piedras y el comal',
+        efecto: { cocinar: 1 } },
+      { coste: { piedra: 14, barro: 10, lena: 6 }, dias: 2, texto: 'Poyo de barro: cunde más la leña',
+        efecto: { lenaPorReceta: -1, cocinaRapida: 0.75 } },
+      { coste: { barro: 24, adobe: 10, madera: 6 }, dias: 3, texto: 'Cocina de humo con chimenea',
+        efecto: { lenaPorReceta: -1, cocinaRapida: 0.55, animoCasa: 4 } },
+    ],
+  },
+  {
+    id: 'gallinero', nombre: 'El gallinero', icono: '🐔', requiereRancho: 2,
+    descripcion: 'Las gallinas ponen si tienen dónde. Huevo cada mañana sin salir de casa.',
+    niveles: [
+      { coste: { madera: 10, bejuco: 8, palma: 6 }, dias: 2, texto: 'Cuatro gallinas',
+        efecto: { huevosDia: 2 } },
+      { coste: { madera: 16, bejuco: 12, maiz: 10 }, dias: 3, texto: 'Ocho gallinas y un gallo',
+        efecto: { huevosDia: 4, carneDia: 0.2 } },
+      { coste: { madera: 24, adobe: 12, maiz: 20 }, dias: 4, texto: 'Gallinero grande, con ponedero',
+        efecto: { huevosDia: 7, carneDia: 0.4 } },
+    ],
+  },
+  {
+    id: 'troje', nombre: 'El troje', icono: '🌽', requiereRancho: 3,
+    descripcion: 'Donde se guarda la mazorca para que aguante el año. Lo que no se guarda, se pierde.',
+    niveles: [
+      { coste: { madera: 14, bejuco: 10 }, dias: 3, texto: 'Varas y bejuco: aguanta una cosecha',
+        efecto: { capacidadDespensa: 60, semillaSegura: true } },
+      { coste: { madera: 26, adobe: 14, palma: 10 }, dias: 5, texto: 'Troje grande, techado',
+        efecto: { capacidadDespensa: 160, semillaSegura: true, perdidaCosecha: -0.5 } },
+    ],
+  },
+  {
+    id: 'pila', nombre: 'La pila', icono: '🪣', requiereRancho: 3,
+    descripcion: 'Un depósito junto a la choza. Cada viaje al río rinde el doble.',
+    niveles: [
+      { coste: { barro: 20, piedra: 16, fibra: 8 }, dias: 3, texto: 'Pila de barro: guarda 40 litros',
+        efecto: { aguaGuardada: 40 } },
+      { coste: { barro: 34, piedra: 28, adobe: 10 }, dias: 4, texto: 'Pila de piedra: guarda 90 litros',
+        efecto: { aguaGuardada: 90, aguaAhorrada: 2 } },
+    ],
+  },
+  {
+    id: 'corral', nombre: 'El corral', icono: '🐄', requiereRancho: 4,
+    descripcion: 'Para el marrano y, si un día se puede, una vaca.',
+    niveles: [
+      { coste: { madera: 26, bejuco: 16 }, dias: 4, texto: 'Corral de varas: un marrano',
+        efecto: { carneDia: 0.5, abonoDia: 1 } },
+      { coste: { madera: 40, piedra: 24, maiz: 30 }, dias: 6, texto: 'Corral grande: marranos y una vaca',
+        efecto: { carneDia: 1, abonoDia: 2, lecheDia: 2 } },
+    ],
+  },
+  {
+    id: 'horno', nombre: 'El horno', icono: '🍞', requiereRancho: 4,
+    descripcion: 'De barro, en el patio. Pan, y también se cuecen las tejas.',
+    niveles: [
+      { coste: { barro: 30, piedra: 20, lena: 20 }, dias: 4, texto: 'Horno de barro',
+        efecto: { hornear: true } },
+      { coste: { barro: 50, adobe: 20, lena: 30 }, dias: 6, texto: 'Horno grande: se cuecen tejas y adobes',
+        efecto: { hornear: true, cocerTeja: true } },
+    ],
+  },
+  {
+    id: 'huerta', nombre: 'La huerta', icono: '🍅', requiereRancho: 5,
+    descripcion: 'Junto a la casa, para lo que se come diario: tomate, chile, hierbas.',
+    niveles: [
+      { coste: { madera: 12, fibra: 10, abono: 6 }, dias: 3, texto: 'Cuatro tablones',
+        efecto: { huertaDia: 2 } },
+      { coste: { madera: 20, fibra: 18, abono: 14 }, dias: 4, texto: 'Huerta cercada y regada',
+        efecto: { huertaDia: 4 } },
+    ],
+  },
+  {
+    id: 'pozo', nombre: 'El pozo', icono: '💧', requiereRancho: 6,
+    descripcion: 'Cavar hasta dar con el agua. El día que sale, se acaban los viajes al río.',
+    niveles: [
+      { coste: { piedra: 60, madera: 30, bejuco: 20 }, dias: 10, texto: 'Se acabó el acarreo',
+        efecto: { aguaDia: 20, aguaAhorrada: 10 } },
+    ],
+  },
+  {
+    id: 'parcela', nombre: 'Tu parcela', icono: '🌾', requiereRancho: 7,
+    descripcion: 'Tierra tuya, no de tus padres. Aquí empieza lo tuyo.',
+    niveles: [
+      { coste: { madera: 30, maiz: 40, frijol: 20 }, dias: 8, texto: 'Seis cuadros propios',
+        efecto: { plazasMilpa: 6, propia: true } },
+    ],
+  },
+];
+
+function construccion(id) { return CONSTRUCCIONES.find((c) => c.id === id) || null; }
+function nivelRancho(n) { return NIVELES_RANCHO.find((r) => r.nivel === n) || null; }
+const MAX_RANCHO = NIVELES_RANCHO.length;
+
+/** Edad del nino segun el nivel del rancho al que ha llegado. */
+function edadEn(nivel) {
+  return (nivelRancho(Math.min(nivel, MAX_RANCHO)) || NIVELES_RANCHO[0]).edad;
+}
+
+  __exp.NIVELES_RANCHO = NIVELES_RANCHO;
+  __exp.CONSTRUCCIONES = CONSTRUCCIONES;
+  __exp.construccion = construccion;
+  __exp.nivelRancho = nivelRancho;
+  __exp.MAX_RANCHO = MAX_RANCHO;
+  __exp.edadEn = edadEn;
+});
+
+__def("src/reglas/construccion.js", function (__exp, __req) {
+/**
+ * construccion.js — Levantar el rancho.
+ *
+ * Una sola obra a la vez, que se paga con lo que hay en la despensa y tarda
+ * dias en terminarse. Mientras se levanta hay que seguir viviendo: acarrear,
+ * cazar, sembrar. Ese es el bucle: traer -> construir -> poder traer mas.
+ *
+ * Regla dura, la que da forma a todo: ninguna construccion puede pasar del
+ * nivel del rancho. Si querés un gallinero de nivel 3, primero el rancho.
+ */
+const { NIVELES_RANCHO, CONSTRUCCIONES, construccion, nivelRancho, MAX_RANCHO, edadEn } = __req("src/contenido/construcciones.js");
+const { OBJETOS } = __req("src/contenido/objetos.js");
+const { cuenta, quitar } = __req("src/reglas/inventario.js");
+const { limitar } = __req("src/nucleo/mate.js");
+
+function crearRancho() {
+  const construcciones = {};
+  for (const c of CONSTRUCCIONES) construcciones[c.id] = 0;
+  return {
+    nivel: 1,
+    construcciones,
+    obra: null,          // {tipo, id, nivel, dias, restante, dia}
+    historial: [],       // lo que se ha levantado, con su dia
+  };
+}
+
+/** Edad del nino ahora mismo. */
+function edad(rancho) { return edadEn(rancho?.nivel || 1); }
+
+/** Nivel maximo al que puede llegar una construccion: el del rancho. */
+function topeDe(rancho, id) {
+  const c = construccion(id);
+  if (!c) return 0;
+  return Math.min(c.niveles.length, Math.max(0, (rancho.nivel || 1) - (c.requiereRancho - 1)));
+}
+
+/** El siguiente escalon de algo: {tipo, id, nivel, coste, dias, texto}. */
+function siguienteNivel(rancho, id) {
+  if (id === 'rancho') {
+    const nivel = (rancho.nivel || 1) + 1;
+    const r = nivelRancho(nivel);
+    if (!r) return null;
+    return { tipo: 'rancho', id: 'rancho', nivel, coste: r.coste, dias: r.dias,
+      texto: r.nombre, requiere: r.requiere, definicion: r };
+  }
+  const c = construccion(id);
+  if (!c) return null;
+  const actual = rancho.construcciones[id] || 0;
+  if (actual >= c.niveles.length) return null;
+  const n = c.niveles[actual];
+  return { tipo: 'construccion', id, nivel: actual + 1, coste: n.coste, dias: n.dias,
+    texto: n.texto, definicion: c, requiereRancho: c.requiereRancho };
+}
+
+/**
+ * Materiales que faltan para un escalon, mirando la despensa y la canasta.
+ * @returns {Array<{id, faltan, nombre}>}
+ */
+function faltaPara(paso, despensa, inventario = {}) {
+  const faltan = [];
+  for (const [id, n] of Object.entries(paso.coste || {})) {
+    const hay = cuenta(despensa, id) + cuenta(inventario, id);
+    if (hay < n) faltan.push({ id, faltan: n - hay, nombre: OBJETOS[id]?.nombre || id, tiene: hay, pide: n });
+  }
+  return faltan;
+}
+
+/**
+ * Comprueba si un escalon se puede empezar hoy.
+ * @returns {{ok, motivo, faltan, paso}}
+ */
+function puedeEmpezar(rancho, id, despensa, inventario = {}) {
+  const paso = siguienteNivel(rancho, id);
+  if (!paso) return { ok: false, motivo: 'Ya está en lo más alto.' };
+  if (rancho.obra) return { ok: false, motivo: 'Ya hay una obra empezada.', paso };
+
+  if (paso.tipo === 'construccion') {
+    if ((rancho.nivel || 1) < paso.requiereRancho) {
+      return { ok: false, paso, motivo: `Hace falta el rancho en nivel ${paso.requiereRancho}.` };
+    }
+    if (paso.nivel > topeDe(rancho, id)) {
+      return { ok: false, paso, motivo: 'Para eso hay que subir antes el rancho.' };
+    }
+  } else {
+    // Subir el rancho pide tener antes ciertas cosas levantadas.
+    for (const [req, nivel] of Object.entries(paso.requiere || {})) {
+      if ((rancho.construcciones[req] || 0) < nivel) {
+        const c = construccion(req);
+        return { ok: false, paso,
+          motivo: `Antes hay que tener ${c ? c.nombre.toLowerCase() : req} en nivel ${nivel}.` };
+      }
+    }
+  }
+
+  const faltan = faltaPara(paso, despensa, inventario);
+  if (faltan.length) {
+    return { ok: false, paso, faltan,
+      motivo: `Falta ${faltan.map((f) => `${f.faltan} ${f.nombre.toLowerCase()}`).join(', ')}.` };
+  }
+  return { ok: true, paso, faltan: [] };
+}
+
+/**
+ * Empieza la obra: cobra los materiales (primero de la despensa, luego de lo
+ * que lleve encima) y deja el contador de dias corriendo.
+ */
+function empezarObra(rancho, id, dia, despensa, inventario = {}) {
+  const comprobacion = puedeEmpezar(rancho, id, despensa, inventario);
+  if (!comprobacion.ok) return comprobacion;
+  const paso = comprobacion.paso;
+  for (const [mat, n] of Object.entries(paso.coste || {})) {
+    const deDespensa = quitar(despensa, mat, n);
+    if (deDespensa < n) quitar(inventario, mat, n - deDespensa);
+  }
+  rancho.obra = {
+    tipo: paso.tipo, id: paso.id, nivel: paso.nivel,
+    dias: paso.dias, restante: paso.dias, dia, texto: paso.texto,
+  };
+  return { ok: true, obra: rancho.obra, paso };
+}
+
+/**
+ * Un dia de obra. Los ayudantes de la familia adelantan trabajo.
+ * @returns {null|{terminada, tipo, id, nivel, efecto, nombre}}
+ */
+function avanzarObra(rancho, { ayudantes = 0, dia = 0 } = {}) {
+  const obra = rancho.obra;
+  if (!obra) return null;
+  obra.restante -= 1 + ayudantes * 0.5;
+  if (obra.restante > 0) return { terminada: false, restante: obra.restante, obra };
+
+  rancho.obra = null;
+  if (obra.tipo === 'rancho') {
+    rancho.nivel = obra.nivel;
+    const def = nivelRancho(obra.nivel);
+    rancho.historial.push({ tipo: 'rancho', nivel: obra.nivel, dia });
+    return { terminada: true, tipo: 'rancho', nivel: obra.nivel, nombre: def.nombre,
+      icono: def.icono, abre: def.abre, edad: def.edad, definicion: def };
+  }
+  rancho.construcciones[obra.id] = obra.nivel;
+  const c = construccion(obra.id);
+  rancho.historial.push({ tipo: 'construccion', id: obra.id, nivel: obra.nivel, dia });
+  return { terminada: true, tipo: 'construccion', id: obra.id, nivel: obra.nivel,
+    nombre: c.nombre, icono: c.icono, texto: c.niveles[obra.nivel - 1].texto, definicion: c };
+}
+
+/**
+ * Suma de todo lo que dan el rancho y sus construcciones. Es lo que consulta
+ * el resto del juego: cuanta agua ahorra la pila, cuantos huevos pone el
+ * gallinero, cuanto mas cabe en la despensa.
+ */
+function efectos(rancho) {
+  const total = {
+    cocinar: 0, capacidadDespensa: 0, cargaExtra: 0, aguaGuardada: 0, aguaAhorrada: 0, aguaDia: 0,
+    huevosDia: 0, carneDia: 0, lecheDia: 0, abonoDia: 0, huertaDia: 0,
+    plazasMilpa: 0, abrigo: 0, animoCasa: 0, lenaPorReceta: 0, cocinaRapida: 1,
+    perdidaCosecha: 0, hornear: false, cocerTeja: false, semillaSegura: false,
+    lenaSeca: false, propia: false,
+  };
+  const aplicar = (e) => {
+    if (!e) return;
+    for (const [k, v] of Object.entries(e)) {
+      if (typeof v === 'boolean') total[k] = total[k] || v;
+      else if (k === 'cocinaRapida') total[k] = Math.min(total[k], v);
+      else if (k === 'abrigo' || k === 'capacidadDespensa') total[k] = Math.max(total[k], v);
+      else total[k] += v;
+    }
+  };
+  for (const r of NIVELES_RANCHO) {
+    if (r.nivel <= (rancho.nivel || 1)) aplicar(r.efecto);
+  }
+  for (const c of CONSTRUCCIONES) {
+    const n = rancho.construcciones[c.id] || 0;
+    for (let i = 0; i < n; i++) aplicar(c.niveles[i].efecto);
+  }
+  return total;
+}
+
+/** Lo que produce el rancho solo, cada dia, sin que el nino haga nada. */
+function produccionDiaria(rancho) {
+  const e = efectos(rancho);
+  const salida = [];
+  if (e.huevosDia >= 1) salida.push({ id: 'huevo', cantidad: Math.floor(e.huevosDia) });
+  if (e.lecheDia >= 1) salida.push({ id: 'leche', cantidad: Math.floor(e.lecheDia) });
+  if (e.carneDia >= 1) salida.push({ id: 'carne_conejo', cantidad: Math.floor(e.carneDia) });
+  if (e.abonoDia >= 1) salida.push({ id: 'abono', cantidad: Math.floor(e.abonoDia) });
+  if (e.huertaDia >= 1) salida.push({ id: 'tomate', cantidad: Math.floor(e.huertaDia) });
+  if (e.aguaDia >= 1) salida.push({ id: 'agua', cantidad: Math.floor(e.aguaDia) });
+  return salida;
+}
+
+/**
+ * Que conviene hacer ahora. Es lo que se le enseña al jugador para que nunca
+ * este parado sin saber a que dedicarse: el equivalente del "siguiente
+ * objetivo" que todo juego de progresion tiene siempre a la vista.
+ */
+function siguientePaso(rancho, despensa, inventario = {}) {
+  if (rancho.obra) {
+    return { estado: 'obra', obra: rancho.obra,
+      texto: `${rancho.obra.texto}: faltan ${Math.ceil(rancho.obra.restante)} día(s)` };
+  }
+  const opciones = [];
+  for (const c of CONSTRUCCIONES) {
+    const paso = siguienteNivel(rancho, c.id);
+    if (!paso) continue;
+    if ((rancho.nivel || 1) < paso.requiereRancho) continue;
+    if (paso.nivel > topeDe(rancho, c.id)) continue;
+    const faltan = faltaPara(paso, despensa, inventario);
+    opciones.push({ paso, faltan, listo: faltan.length === 0 });
+  }
+  const pasoRancho = siguienteNivel(rancho, 'rancho');
+  if (pasoRancho) {
+    const comprobacion = puedeEmpezar(rancho, 'rancho', despensa, inventario);
+    opciones.unshift({ paso: pasoRancho, faltan: comprobacion.faltan || [],
+      listo: comprobacion.ok, motivo: comprobacion.motivo });
+  }
+  const listo = opciones.find((o) => o.listo);
+  if (listo) {
+    return { estado: 'listo', paso: listo.paso,
+      texto: `Ya se puede levantar: ${listo.paso.texto}` };
+  }
+  // Nada listo: se dice que es lo que menos falta para conseguir.
+  const cerca = opciones
+    .map((o) => ({ ...o, deuda: o.faltan.reduce((s, f) => s + f.faltan, 0) }))
+    .filter((o) => o.faltan.length)
+    .sort((a, b) => a.deuda - b.deuda)[0];
+  if (!cerca) return { estado: 'nada', texto: 'No queda nada por levantar.' };
+  return {
+    estado: 'falta', paso: cerca.paso, faltan: cerca.faltan,
+    texto: `Para ${cerca.paso.texto.toLowerCase()} falta ${cerca.faltan
+      .map((f) => `${f.faltan} ${f.nombre.toLowerCase()}`).join(', ')}`,
+  };
+}
+
+/** Cuanto se ha levantado, de 0 a 1. Para la barra de progreso general. */
+function progreso(rancho) {
+  let hecho = (rancho.nivel || 1) - 1;
+  let total = MAX_RANCHO - 1;
+  for (const c of CONSTRUCCIONES) {
+    hecho += rancho.construcciones[c.id] || 0;
+    total += c.niveles.length;
+  }
+  return limitar(hecho / total, 0, 1);
+}
+
+  __exp.crearRancho = crearRancho;
+  __exp.edad = edad;
+  __exp.topeDe = topeDe;
+  __exp.siguienteNivel = siguienteNivel;
+  __exp.faltaPara = faltaPara;
+  __exp.puedeEmpezar = puedeEmpezar;
+  __exp.empezarObra = empezarObra;
+  __exp.avanzarObra = avanzarObra;
+  __exp.efectos = efectos;
+  __exp.produccionDiaria = produccionDiaria;
+  __exp.siguientePaso = siguientePaso;
+  __exp.progreso = progreso;
+});
+
+__def("src/reglas/familia.js", function (__exp, __req) {
+/**
+ * familia.js — Los nueve de la casa y el reparto del trabajo.
+ *
+ * En la casa son nueve: el padre, la madre y siete hijos —cinco varones y dos
+ * hembras—, y el nino es uno de los varones. Ninguno es el protagonista salvo
+ * el: los demas son las manos que se pueden mandar.
+ *
+ * Cada manana se reparte el trabajo. Lo que traen los hermanos entra en la
+ * despensa al cerrar el dia, sin que haya que verlo: eso es lo que permite que
+ * un nino de seis anos sostenga una casa de nueve, y lo que hace que subir el
+ * rancho sea cosa de todos y no de uno.
+ *
+ * Los nombres de aqui son de relleno hasta que lleguen los de verdad
+ * (ver docs/RECUERDOS.md).
+ */
+const { mezclar, limitar } = __req("src/nucleo/mate.js");
+
+const TAREAS = {
+  agua:  { nombre: 'Traer agua', icono: '🏺', descripcion: 'Bajar al río y subir con lo que aguante.' },
+  lena:  { nombre: 'Juntar leña', icono: '🪵', descripcion: 'Ramas secas del monte y de la ribera.' },
+  monte: { nombre: 'Rebuscar en el monte', icono: '🌿', descripcion: 'Fruta, hierbas, lo que dé el día.' },
+  milpa: { nombre: 'Cuidar la milpa', icono: '🌽', descripcion: 'Regar y limpiar los cuadros.' },
+  obra:  { nombre: 'Ayudar en la obra', icono: '🔨', descripcion: 'Adelanta lo que se esté levantando.' },
+  casa:  { nombre: 'El oficio de la casa', icono: '🏠', descripcion: 'Cocinar, moler, lavar, cuidar a los chicos.' },
+};
+
+/**
+ * Quienes son. `fuerza` es cuanto rinde cada uno, `puede` lo que sabe hacer.
+ * La madre hace todo el oficio de la casa ademas de trabajar la tierra: por eso
+ * rinde en todo, y por eso quitarla del oficio tiene precio.
+ */
+const FAMILIA = [
+  { id: 'papa', nombre: 'Papá', rol: 'padre', icono: '👨‍🌾', fuerza: 1.6,
+    puede: ['milpa', 'obra', 'lena', 'monte'],
+    nota: 'Cultiva la tierra. Lo que él hace en un día no lo hace nadie.' },
+  { id: 'mama', nombre: 'Mamá', rol: 'madre', icono: '👩‍🌾', fuerza: 1.4,
+    puede: ['casa', 'milpa', 'monte', 'agua'], porDefecto: 'casa',
+    nota: 'Trabaja la tierra y además hace todo el oficio de la casa.' },
+  { id: 'mayor', nombre: 'El mayor', rol: 'hermano', icono: '🧑', fuerza: 1.3, edad: 14,
+    puede: ['agua', 'lena', 'milpa', 'obra', 'monte'],
+    nota: 'Ya carga como un hombre.' },
+  { id: 'hermano2', nombre: 'El segundo', rol: 'hermano', icono: '🧑', fuerza: 1, edad: 11,
+    puede: ['agua', 'lena', 'milpa', 'monte'] },
+  { id: 'hermana1', nombre: 'La hermana mayor', rol: 'hermana', icono: '👧', fuerza: 1, edad: 12,
+    puede: ['casa', 'agua', 'monte', 'milpa'], porDefecto: 'casa' },
+  { id: 'hermano3', nombre: 'El tercero', rol: 'hermano', icono: '🧒', fuerza: 0.7, edad: 8,
+    puede: ['agua', 'lena', 'monte'] },
+  { id: 'hermana2', nombre: 'La chiquita', rol: 'hermana', icono: '👧', fuerza: 0.5, edad: 5,
+    puede: ['casa', 'monte'], nota: 'Va detrás de todos, y a veces encuentra cosas.' },
+  { id: 'hermano4', nombre: 'El chiquito', rol: 'hermano', icono: '🧒', fuerza: 0.4, edad: 4,
+    puede: ['casa', 'monte'], nota: 'Todavía estorba más de lo que ayuda.' },
+];
+
+/** Lo que rinde una persona en una tarea, en un dia. */
+function rendir(persona, tarea, ctx = {}) {
+  const f = persona.fuerza * mezclar(0.8, 1.2, ctx.suerte ?? 0.5);
+  const estacion = ctx.estacion || 'seca';
+  switch (tarea) {
+    case 'agua':  return [{ id: 'agua', cantidad: Math.round(6 * f) }];
+    case 'lena':  return [{ id: 'lena', cantidad: Math.round(3 * f) }];
+    case 'monte': {
+      const cosas = [];
+      const n = Math.max(1, Math.round(2 * f));
+      // En invierno el monte da mas; en verano hay que conformarse.
+      const tabla = estacion === 'lluvias'
+        ? ['hierbas', 'hongos', 'mango', 'guayaba', 'bejuco', 'fibra']
+        : ['hierbas', 'jocote', 'fibra', 'ocote', 'bejuco', 'piedra'];
+      for (let i = 0; i < n; i++) {
+        cosas.push({ id: tabla[Math.floor((ctx.suerte ?? 0.5) * 997 + i * 7) % tabla.length], cantidad: 1 });
+      }
+      return cosas;
+    }
+    case 'milpa': return [];   // no trae cosas: cuida los cuadros (lo aplica el juego)
+    case 'obra':  return [];   // adelanta dias de obra
+    case 'casa':  return [];   // sostiene la casa: sin nadie, el animo cae
+    default: return [];
+  }
+}
+
+function crearReparto() {
+  const reparto = {};
+  for (const p of FAMILIA) if (p.porDefecto) reparto[p.id] = p.porDefecto;
+  return reparto;
+}
+
+function persona(id) { return FAMILIA.find((p) => p.id === id) || null; }
+
+/** Cambia a alguien de tarea (o lo deja sin nada con tarea = null). */
+function asignar(reparto, id, tarea) {
+  const p = persona(id);
+  if (!p) return { ok: false, motivo: 'Ese no es de la casa.' };
+  if (tarea && !p.puede.includes(tarea)) {
+    return { ok: false, motivo: `${p.nombre} no puede con eso.` };
+  }
+  if (tarea) reparto[id] = tarea; else delete reparto[id];
+  return { ok: true, reparto };
+}
+
+function cuantosEn(reparto, tarea) {
+  return Object.values(reparto).filter((t) => t === tarea).length;
+}
+
+/** Fuerza total puesta en una tarea (los ayudantes de la obra, por ejemplo). */
+function fuerzaEn(reparto, tarea) {
+  let total = 0;
+  for (const [id, t] of Object.entries(reparto)) {
+    if (t !== tarea) continue;
+    total += persona(id)?.fuerza || 0;
+  }
+  return total;
+}
+
+/**
+ * Lo que trae la familia al cerrar el dia.
+ * @returns {{objetos:[], obra:number, casa:number, riegos:number, resumen:[]}}
+ */
+function trabajoDelDia(reparto, ctx = {}) {
+  const objetos = [];
+  const resumen = [];
+  let obra = 0, casa = 0, riegos = 0;
+  let semilla = 0;
+  for (const [id, tarea] of Object.entries(reparto)) {
+    const p = persona(id);
+    if (!p || !tarea) continue;
+    semilla++;
+    const suerte = ((ctx.dia || 1) * 37 + semilla * 91) % 100 / 100;
+    const traido = rendir(p, tarea, { ...ctx, suerte });
+    for (const o of traido) {
+      const ya = objetos.find((x) => x.id === o.id);
+      if (ya) ya.cantidad += o.cantidad; else objetos.push({ ...o });
+    }
+    if (tarea === 'obra') obra += p.fuerza;
+    if (tarea === 'casa') casa += p.fuerza;
+    if (tarea === 'milpa') riegos += p.fuerza;
+    resumen.push({ id, nombre: p.nombre, tarea, icono: TAREAS[tarea]?.icono, traido });
+  }
+  return { objetos, obra, casa, riegos, resumen };
+}
+
+/**
+ * El animo de la casa depende de que alguien la sostenga. Si se manda a todo
+ * el mundo al monte, la casa se cae aunque sobre la comida.
+ */
+function faltaEnCasa(reparto) {
+  return fuerzaEn(reparto, 'casa') < 1 ? 1 : 0;
+}
+
+  __exp.TAREAS = TAREAS;
+  __exp.FAMILIA = FAMILIA;
+  __exp.rendir = rendir;
+  __exp.crearReparto = crearReparto;
+  __exp.persona = persona;
+  __exp.asignar = asignar;
+  __exp.cuantosEn = cuantosEn;
+  __exp.fuerzaEn = fuerzaEn;
+  __exp.trabajoDelDia = trabajoDelDia;
+  __exp.faltaEnCasa = faltaEnCasa;
 });
 
 __def("src/nucleo/estado.js", function (__exp, __req) {
@@ -6493,6 +7465,9 @@ const { crearInventario } = __req("src/reglas/inventario.js");
 const { crearHabilidades, desbloqueado } = __req("src/reglas/habilidades.js");
 const { crearHogar } = __req("src/reglas/hogar.js");
 const { crearCuadro } = __req("src/reglas/cultivo.js");
+const { crearRancho } = __req("src/reglas/construccion.js");
+const { crearReparto } = __req("src/reglas/familia.js");
+const { efectos: efectosRancho } = __req("src/reglas/construccion.js");
 
 const VERSION_PARTIDA = 1;
 const CLAVE_GUARDADO = 'monteadentro.partida.v1';
@@ -6509,10 +7484,13 @@ function partidaNueva(op = {}) {
     jugador: {
       x: op.x ?? 0, z: op.z ?? 0, rumbo: 0,
       necesidades: crearNecesidades(),
-      inventario: crearInventario({ cantaro: 1 }),
+      // Se empieza casi de la nada: un guacal de cuatro litros y nada mas.
+      inventario: crearInventario({ guacal: 1 }),
       habilidades: crearHabilidades(),
     },
     hogar: crearHogar(),
+    rancho: crearRancho(),
+    reparto: crearReparto(),
     cuadros: [],
     recursos: {},                    // id -> {agotadoHasta}
     trampas: [],
@@ -6561,10 +7539,20 @@ function contarCultivo(estado, id, n = 1) {
   estado.contadores.cultivos[id] = (estado.contadores.cultivos[id] || 0) + n;
 }
 
-/** Todo lo que el nino sabe hacer: lo aprendido por historia + por habilidad. */
+/**
+ * Todo lo que el nino puede hacer: lo aprendido por habilidad, lo que le
+ * ensenaron en la historia y lo que le permite tener el rancho levantado (con
+ * horno se cuecen tejas, y sin horno no).
+ */
 function conocimientos(estado) {
   const set = desbloqueado(estado.jugador.habilidades);
   for (const s of estado.sabe || []) set.add(s);
+  if (estado.rancho) {
+    const e = efectosRancho(estado.rancho);
+    if (e.hornear) set.add('hornear');
+    if (e.cocerTeja) set.add('cocerTeja');
+    if (e.cocinar) set.add('cocina');
+  }
   return set;
 }
 
@@ -6610,6 +7598,9 @@ function cargar(almacenamiento = obtenerAlmacen()) {
     // Red de seguridad: una partida corrupta no debe romper el arranque.
     if (!p.jugador || !p.jugador.necesidades) return null;
     p.contadores = { ...contadoresNuevos(), ...(p.contadores || {}) };
+    // Partidas de antes de que existiera el rancho: se les pone el de nivel 1.
+    if (!p.rancho) p.rancho = crearRancho();
+    if (!p.reparto) p.reparto = crearReparto();
     return p;
   } catch {
     return null;
@@ -6670,6 +7661,8 @@ const HALLAZGOS = [
   { id: 'hierbas', objeto: 'hierbas', fuente: 'monte', zonas: ['monte', 'ribera'], meses: [], peso: 8, cantidad: [1, 3], xp: 3 },
   { id: 'hongos', objeto: 'hongos', fuente: 'monte', zonas: ['monte'], meses: [4, 5, 6, 7, 8, 9], peso: 7, cantidad: [1, 4], xp: 6, requiere: 'hongos', trasLluvia: true },
   { id: 'fibra', objeto: 'fibra', fuente: 'monte', zonas: ['monte', 'potrero'], meses: [], peso: 6, cantidad: [2, 5], xp: 2 },
+  { id: 'bejuco', objeto: 'bejuco', fuente: 'monte', zonas: ['monte', 'ribera'], meses: [], peso: 7, cantidad: [2, 4], xp: 3 },
+  { id: 'vara', objeto: 'madera', fuente: 'monte', zonas: ['monte'], meses: [], peso: 4, cantidad: [1, 2], xp: 4 },
   { id: 'ocote', objeto: 'ocote', fuente: 'monte', zonas: ['monte'], meses: [], peso: 5, cantidad: [1, 3], xp: 3 },
   { id: 'yuca', objeto: 'yuca', fuente: 'monte', zonas: ['monte', 'potrero'], meses: [], peso: 3, cantidad: [1, 2], xp: 6 },
   { id: 'guayaba', objeto: 'guayaba', fuente: 'monte', zonas: ['monte', 'ribera'], meses: [7, 8, 9, 10], peso: 5, cantidad: [1, 4], xp: 4 },
@@ -6687,15 +7680,21 @@ const HALLAZGOS = [
   { id: 'tomate', objeto: 'tomate', fuente: 'casa', zonas: ['casa'], meses: [], peso: 4, cantidad: [1, 3], xp: 2 },
 ];
 
-/** Lena: lo que se junta del suelo o se raja de un tronco. */
+/** Lena y madera: lo que se junta del suelo, se raja o se labra. */
 const LENA = {
   tronco: { objeto: 'tronco', cantidad: [1, 1], xp: 5, requiereMachete: false },
   rajar: { objeto: 'lena', cantidad: [3, 3], xp: 4, requiereMachete: true },
   suelo: { objeto: 'lena', cantidad: [1, 3], xp: 3 },
+  // Labrar es lo que convierte el monte en rancho: mas trabajo, mejor material.
+  labrar: { objeto: 'madera', cantidad: [2, 3], xp: 8, requiereMachete: true },
 };
+
+/** La palma del techo sale de las palmeras de la ribera. */
+const PALMA = { objeto: 'palma', cantidad: [2, 4], conMachete: [4, 7], xp: 5 };
 
   __exp.HALLAZGOS = HALLAZGOS;
   __exp.LENA = LENA;
+  __exp.PALMA = PALMA;
 });
 
 __def("src/reglas/recoleccion.js", function (__exp, __req) {
@@ -6965,6 +7964,7 @@ const { NIVEL_AGUA, LUGARES } = __req("src/mundo/terreno.js");
 const { agregar, cuenta, quitar, peso, cargaMaxima } = __req("src/reglas/inventario.js");
 const { beber: beberNec, banarse, comer } = __req("src/reglas/necesidades.js");
 const { buscar, juntarLena, disponible, agotar } = __req("src/reglas/recoleccion.js");
+const { PALMA } = __req("src/contenido/plantas.js");
 const { arar, sembrar, regar, deshierbar, cosechar, listoParaCosechar, etapaDe, diagnostico } = __req("src/reglas/cultivo.js");
 const { revisarTrampa, colocarTrampa, TRAMPA } = __req("src/reglas/caza.js");
 const { entregarTodo } = __req("src/reglas/hogar.js");
@@ -6980,6 +7980,23 @@ const { limitar, mezclar } = __req("src/nucleo/mate.js");
  */
 const RADIO_INTERACCION = 4.5;
 const RADIO_RECURSO = 6.5;
+
+/**
+ * Con que se acarrea el agua. Se empieza con un guacal de cuatro litros —lo
+ * que hay cuando no hay nada— y el cantaro de diez es de las primeras cosas
+ * que cambian el dia entero.
+ */
+function vasija(inventario) {
+  if (cuenta(inventario, 'cantaro')) {
+    return { id: 'cantaro', nombre: 'Cántaro', articulo: 'el', icono: '🏺',
+      capacidad: OBJETOS.cantaro.capacidadAgua };
+  }
+  if (cuenta(inventario, 'guacal')) {
+    return { id: 'guacal', nombre: 'Guacal', articulo: 'el', icono: '🥥',
+      capacidad: OBJETOS.guacal.capacidadAgua };
+  }
+  return null;
+}
 
 /**
  * Que tiene el nino a mano ahora mismo.
@@ -6999,7 +8016,11 @@ function interaccionesCerca(ctx) {
   if (profundidad > -0.6 || dOrilla < 4.5) {
     // El orden importa: la primera opcion es la que hace la tecla E, y lo que
     // uno viene a hacer al rio es llenar el cantaro, no beber.
-    if (cuenta(inv, 'cantaro')) ops.push({ id: 'llenar', etiqueta: 'Llenar el cántaro', icono: '🏺', distancia: 0.2 });
+    const vaso = vasija(inv);
+    if (vaso) {
+      ops.push({ id: 'llenar', etiqueta: `Llenar ${vaso.articulo} ${vaso.nombre.toLowerCase()}`,
+        icono: vaso.icono, distancia: 0.2, sub: `${vaso.capacidad} L` });
+    }
     if (cuenta(inv, 'cana')) ops.push({ id: 'pescar', etiqueta: 'Pescar', icono: '🎣', distancia: 0.35 });
     if (cuenta(inv, 'atarraya')) ops.push({ id: 'atarraya', etiqueta: 'Tirar la atarraya', icono: '🕸️', distancia: 0.45 });
     ops.push({ id: 'beber', etiqueta: 'Beber agua', icono: '💧', distancia: 0.6 });
@@ -7024,7 +8045,11 @@ function interaccionesCerca(ctx) {
         icono: '🪵', distancia: d, objetivo: r, desactivada: !libre });
       if (cuenta(inv, 'machete') && libre) {
         ops.push({ id: 'rajar', etiqueta: 'Rajar el tronco con el machete', icono: '🪓', distancia: d + 0.1, objetivo: r });
+        ops.push({ id: 'labrar', etiqueta: 'Labrar varas para el rancho', icono: '🪚', distancia: d + 0.2, objetivo: r });
       }
+    } else if (r.tipo === 'palmera') {
+      ops.push({ id: 'palma', etiqueta: libre ? 'Cortar palma para el techo' : 'Esta palmera ya está pelada',
+        icono: '🌴', distancia: d, objetivo: r, desactivada: !libre });
     } else if (r.tipo === 'lena') {
       ops.push({ id: 'lena_suelo', etiqueta: libre ? 'Recoger ramas secas' : 'Palo ya limpio',
         icono: '🪵', distancia: d, objetivo: r, desactivada: !libre });
@@ -7113,7 +8138,9 @@ function ejecutar(op, ctx) {
       return { ok: true, texto: 'Bebiste del río. Está fría.', tiempo: 4, actividad: 'quieto' };
     }
     case 'llenar': {
-      const cap = OBJETOS.cantaro.capacidadAgua * (sabe.has('dos_cantaros') ? 2 : 1);
+      const vaso = vasija(inv);
+      if (!vaso) return { ok: false, texto: 'No tenés con qué acarrear agua.' };
+      const cap = vaso.capacidad * (sabe.has('dos_cantaros') ? 2 : 1);
       const r = agregar(inv, 'agua', cap, fuerza);
       const texto = r.anadido === 0
         ? 'No podés con más peso. Dejá algo o llevá menos.'
@@ -7156,18 +8183,33 @@ function ejecutar(op, ctx) {
       };
     }
 
+    case 'palma': {
+      const conMachete = cuenta(inv, 'machete') > 0;
+      const [a, b] = conMachete ? PALMA.conMachete : PALMA.cantidad;
+      const cantidad = Math.max(1, Math.round(mezclar(a, b, rnd())));
+      if (op.objetivo) {
+        const mem = e.recursos[op.objetivo.id] || (e.recursos[op.objetivo.id] = {});
+        agotar(mem, ctx.dia, 'frutal');
+      }
+      return { ok: true, objetos: [{ id: 'palma', cantidad }], xp: PALMA.xp, habilidad: 'recoleccion',
+        texto: `${cantidad} hojas de palma`, tiempo: conMachete ? 30 : 55, actividad: 'trabajar',
+        contador: 'buscar' };
+    }
+
     case 'lena_suelo':
+    case 'labrar':
     case 'rajar': {
-      const modo = op.id === 'rajar' ? 'rajar' : 'suelo';
+      const modo = op.id === 'rajar' ? 'rajar' : op.id === 'labrar' ? 'labrar' : 'suelo';
       const r = juntarLena(modo, { rnd, tieneMachete: cuenta(inv, 'machete') > 0, bono: bono(hab, 'fuerza') });
       if (!r.ok) return { ok: false, texto: r.motivo };
       if (op.objetivo) {
         const mem = e.recursos[op.objetivo.id] || (e.recursos[op.objetivo.id] = {});
         agotar(mem, ctx.dia, 'tronco');
       }
-      return { ok: true, objetos: r.objetos, xp: r.xp, habilidad: 'fuerza', contador: 'lena',
-        texto: `${r.objetos[0].cantidad} × ${OBJETOS[r.objetos[0].id].nombre}`,
-        tiempo: modo === 'rajar' ? 90 : 35, actividad: 'trabajar', minijuego: 'lena' };
+      return { ok: true, objetos: r.objetos, xp: r.xp, habilidad: modo === 'labrar' ? 'oficio' : 'fuerza',
+        contador: 'lena', texto: `${r.objetos[0].cantidad} × ${OBJETOS[r.objetos[0].id].nombre}`,
+        tiempo: modo === 'suelo' ? 35 : modo === 'rajar' ? 90 : 120,
+        actividad: 'trabajar', minijuego: 'lena' };
     }
 
     case 'arar': {
@@ -7265,6 +8307,7 @@ function cargaRelativa(estado) {
 
   __exp.RADIO_INTERACCION = RADIO_INTERACCION;
   __exp.RADIO_RECURSO = RADIO_RECURSO;
+  __exp.vasija = vasija;
   __exp.interaccionesCerca = interaccionesCerca;
   __exp.ejecutar = ejecutar;
   __exp.estadoCuadro = estadoCuadro;
@@ -7347,6 +8390,21 @@ const RECETAS = [
   { id: 'canasta', nombre: 'Tejer una canasta', icono: '🧺', tipo: 'taller',
     ingredientes: { fibra: 8 }, minutos: 70, xp: 18,
     produce: { id: 'canasta', cantidad: 1 } },
+  { id: 'adobe', nombre: 'Hacer adobes', icono: '🧱', tipo: 'taller',
+    ingredientes: { barro: 3, fibra: 1 }, minutos: 90, xp: 10,
+    produce: { id: 'adobe', cantidad: 2 },
+    descripcion: 'Barro con zacate en la gavera, y al sol tres días.' },
+  { id: 'teja', nombre: 'Cocer tejas', icono: '🟥', tipo: 'taller', requiere: 'cocerTeja',
+    ingredientes: { barro: 2 }, lena: 2, minutos: 120, xp: 14,
+    produce: { id: 'teja', cantidad: 3 },
+    descripcion: 'En el horno grande. Sale la teja que quita las goteras.' },
+  { id: 'abono_ceniza', nombre: 'Juntar ceniza', icono: '💩', tipo: 'taller',
+    ingredientes: { lena: 2 }, minutos: 20, xp: 4,
+    produce: { id: 'abono', cantidad: 2 },
+    descripcion: 'La ceniza del fogón vuelve a la milpa.' },
+  { id: 'guacal', nombre: 'Hacer un guacal', icono: '🥥', tipo: 'taller',
+    ingredientes: { fibra: 2 }, minutos: 25, xp: 5,
+    produce: { id: 'guacal', cantidad: 1 } },
   { id: 'candil', nombre: 'Hacer un candil', icono: '🕯️', tipo: 'taller',
     ingredientes: { barro: 2, ocote: 2, fibra: 1 }, minutos: 45, xp: 16,
     produce: { id: 'candil', cantidad: 1 } },
@@ -7640,39 +8698,71 @@ __def("src/contenido/capitulos.js", function (__exp, __req) {
  *   {tipo:'estrellas', meta:3}                     dias de 3 estrellas acumulados
  */
 
+/**
+ * En la casa son nueve: el padre, la madre y siete hijos —cinco varones y dos
+ * hembras—. El nino es uno de los varones, y es el unico que se juega: los
+ * demas ayudan, mandan y ensenan, pero la historia es la suya.
+ *
+ * Los nombres son de relleno hasta que lleguen los de verdad
+ * (ver docs/RECUERDOS.md).
+ */
 const PERSONAJES = {
-  nino:   { nombre: 'Tino', color: '#f5c77e' },
-  mama:   { nombre: 'Mamá Rosa', color: '#f2a4a4' },
-  papa:   { nombre: 'Papá Chepe', color: '#8fb8e8' },
-  abuela: { nombre: 'Abuela Juana', color: '#c9a6e8' },
-  meches: { nombre: 'Meches', color: '#8fe0c0' },
-  perro:  { nombre: 'Lucero', color: '#d9b48f' },
+  nino:    { nombre: 'Vos', color: '#f5c77e' },
+  mama:    { nombre: 'Mamá', color: '#f2a4a4' },
+  papa:    { nombre: 'Papá', color: '#8fb8e8' },
+  mayor:   { nombre: 'El mayor', color: '#9fd08a' },
+  hermana: { nombre: 'La hermana mayor', color: '#8fe0c0' },
+  chiquito: { nombre: 'El chiquito', color: '#e0c08f' },
+  abuela:  { nombre: 'Abuela', color: '#c9a6e8' },
+  perro:   { nombre: 'El perro', color: '#d9b48f' },
   narrador: { nombre: '', color: '#cfd8e3' },
 };
 
 const CAPITULOS = [
   {
     id: 'agua',
-    titulo: 'El mandado del agua',
-    subtitulo: 'En esta casa no hay tubería. El agua se trae.',
+    titulo: 'Andá a acarrear agua',
+    subtitulo: 'Seis años. En esta choza no hay luz, no hay agua y no hay gas.',
     requiere: [],
     intro: [
-      { quien: 'narrador', texto: 'Amanece en el valle. Huele a tierra mojada y a humo del fogón de al lado.' },
-      { quien: 'mama', texto: 'Tino, ya te levantaste. Andá al río y traeme agua, que no hay ni para el café.' },
-      { quien: 'mama', texto: 'Y de vuelta juntá leña seca. Si viene lloviendo, la de abajo del palo no se moja.' },
-      { quien: 'nino', texto: '¿Y si me tardo?' },
-      { quien: 'mama', texto: 'Te tardás. Pero volvés.' },
+      { quien: 'narrador', texto: 'Cuatro horcones, palma arriba y el suelo de tierra. Eso es la casa. Y son nueve los que viven en ella.' },
+      { quien: 'mama', texto: 'Ya estás grande. Andá a acarrear agua, que no hay ni para el café.' },
+      { quien: 'nino', texto: '¿Con qué la traigo?' },
+      { quien: 'mama', texto: 'Con el guacal. Cuando puedas con el cántaro, te lo doy.' },
+      { quien: 'mama', texto: 'Y de vuelta, buscá leña. Sin leña no se cocina, y aquí no hay gas.' },
     ],
     objetivos: [
-      { id: 'agua', texto: 'Llevar 9 litros de agua a la casa', tipo: 'entregar', objeto: 'agua', meta: 9 },
-      { id: 'lena', texto: 'Llevar 3 leñas a la casa', tipo: 'entregar', objeto: 'lena', meta: 3 },
+      { id: 'agua', texto: 'Llevar 6 litros de agua a la casa', tipo: 'entregar', objeto: 'agua', meta: 6 },
+      { id: 'lena', texto: 'Llevar 2 leñas a la casa', tipo: 'entregar', objeto: 'lena', meta: 2 },
     ],
-    premio: { xp: { fuerza: 40 }, objetos: [{ id: 'canasta', cantidad: 1 }] },
+    premio: { xp: { fuerza: 40 }, objetos: [{ id: 'cantaro', cantidad: 1 }] },
     cierre: [
       { quien: 'mama', texto: 'Mirá vos. Con eso alcanza para hoy.' },
-      { quien: 'mama', texto: 'Tomá la canasta de tu abuelo. Ahora te cabe más.' },
+      { quien: 'mama', texto: 'Tomá el cántaro. Aguanta diez litros: son menos viajes, pero pesa más.' },
+      { quien: 'narrador', texto: 'Fue el primer mandado. Después vinieron todos los demás.' },
     ],
-    consejo: 'El cántaro se llena metiéndose al río. Cada litro pesa: si te cargás de más, te vas a cansar antes de llegar.',
+    consejo: 'El guacal aguanta cuatro litros; el cántaro, diez. Cada litro pesa un kilo: mirá la carga abajo a la izquierda antes de arrancar.',
+  },
+  {
+    id: 'fogon',
+    titulo: 'Tres piedras y el comal',
+    subtitulo: 'Lo primero que se levanta en un rancho es dónde cocinar',
+    requiere: ['agua'],
+    intro: [
+      { quien: 'mama', texto: 'El fogón se cayó con el agua de anoche. Traé piedra del río y leña seca.' },
+      { quien: 'papa', texto: 'Tres piedras bien puestas y el comal encima. Eso es todo, y sin eso no comemos.' },
+    ],
+    objetivos: [
+      { id: 'piedra', texto: 'Llevar 8 piedras a la casa', tipo: 'entregar', objeto: 'piedra', meta: 8 },
+      { id: 'obra', texto: 'Levantar el fogón (pestaña Rancho)', tipo: 'construccion', construccion: 'fogon', meta: 1 },
+      { id: 'cocinar', texto: 'Hacer tortillas en el fogón', tipo: 'cocinar', receta: 'tortilla', meta: 1 },
+    ],
+    premio: { xp: { oficio: 45, fuerza: 20 }, sabe: ['cocina'] },
+    cierre: [
+      { quien: 'mama', texto: 'Ahora sí. Mientras haya fuego, hay casa.' },
+      { quien: 'abuela', texto: 'Y el que sabe hacer fuego no pasa hambre en ningún lado.' },
+    ],
+    consejo: 'En la pestaña Rancho está todo lo que se puede levantar: cada cosa pide materiales y días de trabajo. Manda gente a la obra y se acaba antes.',
   },
   {
     id: 'monte',
@@ -7740,24 +8830,49 @@ const CAPITULOS = [
   },
   {
     id: 'caza',
-    titulo: 'La hondilla',
-    subtitulo: 'Acercarse sin que te huelan',
+    titulo: 'Aves y garrobos',
+    subtitulo: 'La carne no se compra: se busca',
     requiere: ['monte'],
     intro: [
+      { quien: 'papa', texto: 'Hoy no hay carne. Agarrá la hondilla y andate al monte.' },
+      { quien: 'papa', texto: 'Aves, las que se dejen. Y garrobo, si aprieta el sol: sale a asolearse a la piedra y se queda quieto, creyendo que no lo ves.' },
       { quien: 'papa', texto: 'Los animales oyen mejor que vos y huelen mucho mejor. Si el viento va de vos hacia ellos, ya perdiste.' },
       { quien: 'papa', texto: 'Agachate. Andá despacio. Y tirá una sola vez.' },
     ],
     objetivos: [
       { id: 'arma', texto: 'Hacer una hondilla', tipo: 'cocinar', receta: 'hondilla', meta: 1 },
-      { id: 'cazar', texto: 'Cobrar una pieza', tipo: 'accion', accion: 'cazar', meta: 1 },
+      { id: 'cazar', texto: 'Cobrar dos piezas en el monte', tipo: 'accion', accion: 'cazar', meta: 2 },
       { id: 'comida', texto: 'Asar la carne y llevarla a la casa', tipo: 'entregar', objeto: 'carne_asada', meta: 1 },
     ],
     premio: { xp: { caza: 80 }, sabe: ['rastro'] },
     cierre: [
       { quien: 'papa', texto: 'Hoy hay carne por vos.' },
-      { quien: 'abuela', texto: 'Y del monte se toma lo que hace falta, no más. El que agarra de más, un día no encuentra nada.' },
+      { quien: 'mama', texto: 'Nueve bocas, y hoy una la llenaste vos.' },
+      { quien: 'abuela', texto: 'Del monte se toma lo que hace falta, no más. El que agarra de más, un día no encuentra nada.' },
     ],
-    consejo: 'Mirá de dónde viene el viento antes de acercarte. Agachado hacés la mitad de ruido.',
+    consejo: 'El garrobo sale a la piedra al mediodía y solo cuando aprieta el verano. Se queda quieto: acercate despacio y no lo asustés, porque arranca como un rayo.',
+  },
+  {
+    id: 'corredor',
+    titulo: 'El corredor',
+    subtitulo: 'Que la leña no se moje y se pueda estar cuando llueve',
+    requiere: ['fogon', 'monte'],
+    intro: [
+      { quien: 'papa', texto: 'Vamos a alargarle el techo por delante. Con eso la leña se guarda seca y cuando llueve no hay que meterse todos adentro.' },
+      { quien: 'papa', texto: 'Hace falta madera, palma y bejuco. La palma se corta de las palmeras de la ribera; el bejuco, en el monte.' },
+      { quien: 'mayor', texto: 'Yo te ayudo con la madera. Entre los dos se hace en la mitad.' },
+    ],
+    objetivos: [
+      { id: 'madera', texto: 'Llevar 8 maderas a la casa', tipo: 'entregar', objeto: 'madera', meta: 8 },
+      { id: 'palma', texto: 'Llevar 10 palmas a la casa', tipo: 'entregar', objeto: 'palma', meta: 10 },
+      { id: 'rancho', texto: 'Subir el rancho a nivel 2', tipo: 'rancho', meta: 2 },
+    ],
+    premio: { xp: { oficio: 60, fuerza: 40, espiritu: 25 } },
+    cierre: [
+      { quien: 'narrador', texto: 'Esa noche llovió, y por primera vez la leña amaneció seca.' },
+      { quien: 'mama', texto: 'Ya tenés siete años y ya se te nota en la casa.' },
+    ],
+    consejo: 'Manda a tu papá y a tu hermano mayor a la obra desde la pestaña Familia: cada uno adelanta medio día de trabajo.',
   },
   {
     id: 'aguacero',
@@ -7767,7 +8882,7 @@ const CAPITULOS = [
     intro: [
       { quien: 'abuela', texto: 'Mirá el cielo por el lado del monte. Eso que viene negro no es sombra.' },
       { quien: 'mama', texto: 'Meté la leña bajo el corredor antes de que caiga, o mañana comemos frío.' },
-      { quien: 'meches', texto: '¡Y después salimos a mojarnos! ¿Verdad que sí?' },
+      { quien: 'chiquito', texto: '¡Y después salimos a mojarnos! ¿Verdad que sí?' },
     ],
     objetivos: [
       { id: 'lena', texto: 'Tener 6 leñas guardadas antes del aguacero', tipo: 'entregar', objeto: 'lena', meta: 6 },
@@ -7776,7 +8891,7 @@ const CAPITULOS = [
     ],
     premio: { xp: { espiritu: 70, fuerza: 30 }, sabe: ['cocina'] },
     cierre: [
-      { quien: 'meches', texto: '¡Estás todo enlodado!' },
+      { quien: 'hermana', texto: '¡Estás todo enlodado! Y adiviná quién lava.' },
       { quien: 'nino', texto: 'Vos también.' },
       { quien: 'abuela', texto: 'Déjenlos, Rosa. Un aguacero se juega una vez y se acuerda toda la vida.' },
     ],
@@ -7950,6 +9065,12 @@ function evaluarObjetivo(obj, estado) {
     case 'lugar':
       valor = (estado.lugaresVisitados || []).includes(obj.lugar) ? 1 : 0;
       break;
+    case 'rancho':
+      valor = estado.rancho?.nivel || 1;
+      break;
+    case 'construccion':
+      valor = estado.rancho?.construcciones?.[obj.construccion] || 0;
+      break;
     default:
       valor = 0;
   }
@@ -8048,11 +9169,16 @@ const AMBIENTE = [
   { quien: 'abuela', texto: 'Cuando yo era chiquita, aquí abajo había venados hasta en el patio.', cuando: { horaMin: 18 } },
   { quien: 'abuela', texto: 'Sentate un rato. El monte no se va a ir.', cuando: { aguanteMax: 30 } },
   { quien: 'abuela', texto: 'Las estrellas de allá son las que marcan el norte. Aprendételas.', cuando: { horaMin: 20, nubosidadMax: 0.3 } },
-  { quien: 'meches', texto: '¿Me llevás al río? ¡Porfa!', cuando: { horaMin: 9, horaMax: 16 } },
-  { quien: 'meches', texto: '¡Está lloviendo! ¡Salí, salí!', cuando: { lluviaMin: 0.4 } },
-  { quien: 'meches', texto: 'Tenés lodo hasta en las orejas.', cuando: { higieneMax: 30 } },
+  { quien: 'chiquito', texto: '¿Me llevás al río? ¡Porfa!', cuando: { horaMin: 9, horaMax: 16 } },
+  { quien: 'chiquito', texto: '¡Está lloviendo! ¡Salí, salí!', cuando: { lluviaMin: 0.4 } },
+  { quien: 'hermana', texto: 'Tenés lodo hasta en las orejas. Y yo lavo.', cuando: { higieneMax: 30 } },
+  { quien: 'hermana', texto: 'Dejá el guacal donde va, que somos nueve buscándolo.', cuando: { horaMin: 12, horaMax: 18 } },
+  { quien: 'mayor', texto: 'Si querés te enseño a hondear garrobos. Al mediodía salen a asolearse.', cuando: { horaMin: 10, horaMax: 15 } },
+  { quien: 'mayor', texto: 'Yo cargo la leña gruesa; vos traé la menuda y no te quedés.', cuando: { horaMin: 6, horaMax: 11 } },
   { quien: 'mama', texto: 'Mañana hay que sembrar temprano, antes del sol.', cuando: { horaMin: 19, estacion: 'lluvias' } },
+  { quien: 'mama', texto: 'La palma del techo ya está rala. Cuando puedan, corten más.', cuando: { horaMin: 17, nubosidadMin: 0.6 } },
   { quien: 'papa', texto: 'En seca el agua está más lejos. Hay que ir dos veces.', cuando: { estacion: 'seca', horaMax: 10 } },
+  { quien: 'papa', texto: 'Todo lo que ves lo levantamos nosotros. Poco a poco, hijo.', cuando: { horaMin: 18, horaMax: 21 } },
 ];
 
 /** Frases del narrador al pasar cosas. Se usan como avisos con alma. */
@@ -8198,7 +9324,13 @@ class Hud {
     this.tituloCap = el('h3', { texto: 'Sin capítulo' });
     this.subCap = el('p', { clase: 'sub', texto: '' });
     this.listaObj = el('ul');
-    this.objetivos = el('div', { clase: 'tarjeta', id: 'objetivos' }, [this.tituloCap, this.subCap, this.listaObj]);
+    // El rancho va debajo de los objetivos y no se va nunca: es la cuesta
+    // larga del juego, y conviene tenerla siempre delante.
+    this.ranchoNivel = el('div', { clase: 'rancho-nivel', texto: '' });
+    this.ranchoPaso = el('div', { clase: 'rancho-paso', texto: '' });
+    this.cajaRancho = el('div', { clase: 'rancho-hud' }, [this.ranchoNivel, this.ranchoPaso]);
+    this.objetivos = el('div', { clase: 'tarjeta', id: 'objetivos' },
+      [this.tituloCap, this.subCap, this.listaObj, this.cajaRancho]);
 
     // necesidades
     this.barras = {};
@@ -8274,7 +9406,19 @@ class Hud {
         }
       }
     } else {
-      this.objetivos.classList.add('oculto');
+      this.tituloCap.textContent = 'El rancho';
+      this.subCap.textContent = 'Levantar la casa, día a día.';
+      vaciar(this.listaObj);
+      this.objetivos.classList.remove('oculto');
+    }
+
+    // --- el rancho, siempre visible
+    if (d.rancho) {
+      const r = d.rancho;
+      this.ranchoNivel.textContent = `🛖 Nivel ${r.nivel} · ${r.edad} años`;
+      const paso = r.paso;
+      this.ranchoPaso.textContent = paso ? paso.texto : '';
+      this.ranchoPaso.className = `rancho-paso ${paso?.estado || ''}`;
     }
   }
 
@@ -8337,7 +9481,10 @@ const { HABILIDADES, nivelDesde, DESBLOQUEOS } = __req("src/reglas/habilidades.j
 const { listar, peso, cargaMaxima } = __req("src/reglas/inventario.js");
 const { CULTIVOS } = __req("src/contenido/cultivos.js");
 const { disponibles: recetasDisponibles, puedeCocinar } = __req("src/reglas/cocina.js");
-const { humorFamilia, faltantes, CONSUMO } = __req("src/reglas/hogar.js");
+const { humorFamilia, faltantes, CONSUMO, cuota } = __req("src/reglas/hogar.js");
+const { CONSTRUCCIONES, NIVELES_RANCHO, nivelRancho, MAX_RANCHO } = __req("src/contenido/construcciones.js");
+const { siguienteNivel, puedeEmpezar, topeDe, progreso: progresoRancho, efectos: efectosRancho, edad: edadDe } = __req("src/reglas/construccion.js");
+const { FAMILIA, TAREAS, persona } = __req("src/reglas/familia.js");
 
 class Paneles {
   constructor(raiz, acciones = {}) {
@@ -8379,6 +9526,8 @@ class Paneles {
       cocina: () => this._recetas(datos, 'fogon', 'El fogón'),
       taller: () => this._recetas(datos, 'taller', 'El taller'),
       sembrar: () => this._sembrar(datos),
+      rancho: () => this._rancho(datos),
+      familia: () => this._familia(datos),
       despensa: () => this._despensa(datos),
       pausa: () => this._pausa(datos),
       resumen: () => this._resumen(datos),
@@ -8554,18 +9703,158 @@ class Paneles {
     this.cuerpo.appendChild(rejilla);
   }
 
+  // ------------------------------------------------------------- rancho
+  _rancho(d) {
+    const r = d.estado.rancho;
+    const def = nivelRancho(r.nivel);
+    this.titulo.textContent = `${def.icono} ${def.nombre}`;
+    this._pestanasDe('rancho', [['rancho', 'El rancho'], ['familia', 'La familia'], ['despensa', 'Despensa']]);
+    const despensa = d.estado.hogar.despensa;
+    const inv = d.estado.jugador.inventario;
+
+    // --- cabecera: donde se esta y cuanto queda
+    this.cuerpo.appendChild(el('div', { clase: 'rancho-cima' }, [
+      el('div', {}, [
+        el('div', { clase: 'nota', texto: def.descripcion }),
+        el('div', { clase: 'riel', estilo: 'margin-top:10px' },
+          [el('div', { clase: 'relleno', estilo: `width:${pct(progresoRancho(r))}` })]),
+        el('div', { clase: 'nota', estilo: 'margin-top:5px',
+          texto: `Nivel ${r.nivel} de ${MAX_RANCHO} · ${edadDe(r)} años · levantado el ${Math.round(progresoRancho(r) * 100)} %` }),
+      ]),
+    ]));
+
+    // --- obra en marcha
+    if (r.obra) {
+      const hecho = 1 - r.obra.restante / r.obra.dias;
+      this.cuerpo.appendChild(el('div', { clase: 'obra' }, [
+        el('div', { clase: 'fila' }, [
+          el('div', { texto: '🔨', estilo: 'font-size:22px' }),
+          el('div', {}, [
+            el('div', { clase: 'nombre', texto: r.obra.texto }),
+            el('div', { clase: 'detalle', texto: `Faltan ${Math.ceil(r.obra.restante)} día(s). Manda gente a la obra para acabar antes.` }),
+          ]),
+        ]),
+        el('div', { clase: 'riel', estilo: 'margin-top:8px' },
+          [el('div', { clase: 'relleno', estilo: `width:${pct(hecho)}` })]),
+      ]));
+    }
+
+    // --- subir el rancho
+    const pasoRancho = siguienteNivel(r, 'rancho');
+    if (pasoRancho) {
+      const chequeo = puedeEmpezar(r, 'rancho', despensa, inv);
+      this.cuerpo.appendChild(this._tarjetaObra({
+        icono: pasoRancho.definicion.icono, titulo: `Subir a: ${pasoRancho.texto}`,
+        subtitulo: pasoRancho.definicion.descripcion,
+        coste: pasoRancho.coste, dias: pasoRancho.dias, despensa, inv,
+        chequeo, principal: true,
+        abre: pasoRancho.definicion.abre,
+        alPulsar: () => { this.acciones.alConstruir?.('rancho'); this.abrir('rancho', this.datos); },
+      }));
+    }
+
+    // --- construcciones
+    this.cuerpo.appendChild(el('h3', { estilo: 'font-size:13px;margin:18px 0 9px;color:var(--j-hueso-2)',
+      texto: 'Lo que se puede levantar' }));
+    for (const c of CONSTRUCCIONES) {
+      const actual = r.construcciones[c.id] || 0;
+      const paso = siguienteNivel(r, c.id);
+      const tope = topeDe(r, c.id);
+      const bloqueado = r.nivel < c.requiereRancho;
+      const chequeo = paso ? puedeEmpezar(r, c.id, despensa, inv) : { ok: false, motivo: 'Ya está al máximo.' };
+      this.cuerpo.appendChild(this._tarjetaObra({
+        icono: c.icono,
+        // El titulo dice a que se sube, no donde se esta: si ya hay fogon de
+        // nivel 1, la tarjeta es la del 2. Que se lea lo que se va a ganar.
+        titulo: c.nombre + (paso && !bloqueado && actual < tope
+          ? (actual ? ` · nivel ${actual} → ${paso.nivel}` : ` · nivel ${paso.nivel}`)
+          : (actual ? ` · nivel ${actual}${actual >= c.niveles.length ? ' · al máximo' : ''}` : '')),
+        subtitulo: bloqueado ? `Hace falta el rancho en nivel ${c.requiereRancho}.` : (paso ? paso.texto : c.descripcion),
+        coste: paso && !bloqueado ? paso.coste : null,
+        dias: paso?.dias, despensa, inv, chequeo,
+        apagado: bloqueado || !paso || actual >= tope,
+        alPulsar: () => { this.acciones.alConstruir?.(c.id); this.abrir('rancho', this.datos); },
+      }));
+    }
+  }
+
+  _tarjetaObra({ icono, titulo, subtitulo, coste, dias, despensa, inv, chequeo, alPulsar,
+    principal = false, apagado = false, abre = null }) {
+    const materiales = coste ? Object.entries(coste).map(([id, n]) => {
+      const hay = (despensa[id] || 0) + (inv[id] || 0);
+      return el('span', { clase: `material ${hay >= n ? 'hay' : 'falta'}`,
+        texto: `${OBJETOS[id]?.icono || ''} ${hay}/${n} ${OBJETOS[id]?.nombre || id}` });
+    }) : [];
+    const puede = chequeo?.ok && !apagado;
+    return el('div', { clase: `obra ${principal ? 'principal' : ''} ${apagado ? 'apagada' : ''}` }, [
+      el('div', { clase: 'fila' }, [
+        el('div', { texto: icono, estilo: 'font-size:24px' }),
+        el('div', { estilo: 'min-width:0;flex:1' }, [
+          el('div', { clase: 'nombre', texto: titulo }),
+          el('div', { clase: 'detalle', texto: subtitulo || '' }),
+        ]),
+        dias ? el('div', { clase: 'dias', texto: `${dias} día${dias > 1 ? 's' : ''}` }) : null,
+      ]),
+      materiales.length ? el('div', { clase: 'materiales' }, materiales) : null,
+      abre ? el('div', { clase: 'abre', texto: `Abre: ${abre.join(' · ')}` }) : null,
+      apagado ? null : el('div', { clase: 'fila-botones', estilo: 'margin-top:9px' }, [
+        boton(puede ? 'Empezar la obra' : (chequeo?.motivo || 'No se puede todavía'), {
+          clase: puede ? 'primario' : '', desactivado: !puede, alPulsar: puede ? alPulsar : null }),
+      ]),
+    ]);
+  }
+
+  // ------------------------------------------------------------- familia
+  _familia(d) {
+    this.titulo.textContent = 'El reparto del día';
+    this._pestanasDe('familia', [['rancho', 'El rancho'], ['familia', 'La familia'], ['despensa', 'Despensa']]);
+    const reparto = d.estado.reparto || {};
+    const c = cuota(edadDe(d.estado.rancho), { cocina: efectosRancho(d.estado.rancho).cocinar > 0 });
+    const tuyo = [`${c.agua} litros`, `${c.lena} leñas`,
+      c.raciones ? `${c.raciones} ración(es)` : null].filter(Boolean).join(', ');
+    this.cuerpo.appendChild(el('div', { clase: 'nota', estilo: 'margin-bottom:14px',
+      texto: `En la casa son nueve: cada día se gastan ${CONSUMO.agua} litros de agua, ${CONSUMO.lena} leñas y ${CONSUMO.raciones} raciones. A vos te toca traer ${tuyo}${c.raciones ? '' : ' (comida todavía no: no hay dónde cocinar)'}. Del resto se encargan ellos. Lo que traigan entra a la despensa al cerrar el día, y de ahí sale lo que se necesita para levantar el rancho.` }));
+
+    for (const p of FAMILIA) {
+      const actual = reparto[p.id] || null;
+      this.cuerpo.appendChild(el('div', { clase: 'persona' }, [
+        el('div', { clase: 'fila' }, [
+          el('div', { texto: p.icono, estilo: 'font-size:22px' }),
+          el('div', { estilo: 'flex:1;min-width:0' }, [
+            el('div', { clase: 'nombre', texto: p.nombre + (p.edad ? ` · ${p.edad} años` : '') }),
+            el('div', { clase: 'detalle', texto: p.nota || '' }),
+          ]),
+        ]),
+        el('div', { clase: 'tareas' }, [
+          ...p.puede.map((t) => el('button', {
+            clase: `pildora-tarea ${actual === t ? 'activa' : ''}`,
+            texto: `${TAREAS[t].icono} ${TAREAS[t].nombre}`,
+            titulo: TAREAS[t].descripcion,
+            alPulsar: () => { this.acciones.alAsignar?.(p.id, actual === t ? null : t); this.abrir('familia', this.datos); },
+          })),
+        ]),
+      ]));
+    }
+  }
+
   // ----------------------------------------------------------- despensa
   _despensa(d) {
     this.titulo.textContent = 'La despensa de la casa';
-    vaciar(this.pestanas);
-    const falta = faltantes(d.estado.hogar);
-    this.cuerpo.appendChild(el('div', { clase: 'cifras', estilo: 'margin-bottom:14px' }, [
-      cifra(`${CONSUMO.agua - falta.agua}/${CONSUMO.agua}`, 'litros de agua'),
-      cifra(`${CONSUMO.lena - falta.lena}/${CONSUMO.lena}`, 'leñas'),
-      cifra(`${CONSUMO.raciones - falta.raciones}/${CONSUMO.raciones}`, 'raciones'),
+    this._pestanasDe('despensa', [['rancho', 'El rancho'], ['familia', 'La familia'], ['despensa', 'Despensa']]);
+    const edad = edadDe(d.estado.rancho);
+    const falta = faltantes(d.estado.hogar, edad, { cocina: efectosRancho(d.estado.rancho).cocinar > 0 });
+    const c = falta.cuota;
+    this.cuerpo.appendChild(el('div', { clase: 'nota-titulo',
+      texto: `Tu mandado de hoy · ${edad} años` }));
+    this.cuerpo.appendChild(el('div', { clase: 'cifras', estilo: 'margin-bottom:10px' }, [
+      cifra(`${c.agua - falta.agua}/${c.agua}`, 'litros de agua'),
+      cifra(`${c.lena - falta.lena}/${c.lena}`, 'leñas'),
+      ...(c.raciones ? [cifra(`${c.raciones - falta.raciones}/${c.raciones}`, 'raciones')] : []),
     ]));
-    this.cuerpo.appendChild(el('div', { clase: 'nota', estilo: 'margin-bottom:14px' },
-      [el('span', { texto: humorFamilia(d.estado.hogar) })]));
+    this.cuerpo.appendChild(el('div', { clase: 'nota', estilo: 'margin-bottom:14px' }, [
+      el('span', { texto: `Esto es lo que trajiste vos: lo que traigan tus hermanos llena la despensa, pero el mandado no te lo hacen. Lo que sobra es con lo que se levanta el rancho. ${c.raciones ? '' : 'De comida todavía no te piden nada: primero hay que tener fogón. '}` }),
+      el('span', { texto: humorFamilia(d.estado.hogar) }),
+    ]));
     const lista = listar(d.estado.hogar.despensa);
     if (!lista.length) {
       this.cuerpo.appendChild(el('div', { clase: 'vacio', texto: 'La despensa está vacía.' }));
@@ -8578,8 +9867,8 @@ class Paneles {
         alPulsar: () => { this.acciones.alTomar?.(x.id); this.abrir('despensa', this.datos); },
       }, [
         el('div', { clase: 'emoji', texto: x.objeto.icono }),
-        el('div', {}, [el('div', { clase: 'nombre', texto: x.objeto.nombre }),
-          el('div', { clase: 'detalle', texto: 'Pulsá para llevártelo' })]),
+        el('div', { estilo: 'min-width:0' }, [el('div', { clase: 'nombre', texto: x.objeto.nombre }),
+          el('div', { clase: 'detalle', texto: 'Tomar' })]),
         el('div', { clase: 'cantidad', texto: `×${x.cantidad}` }),
       ]));
     }
@@ -9219,7 +10508,9 @@ const { peso, cargaMaxima, agregar, cuenta, quitar, transferir } = __req("src/re
 const { nivel, bono, ganar } = __req("src/reglas/habilidades.js");
 const { interaccionesCerca, ejecutar, cargaRelativa } = __req("src/reglas/acciones.js");
 const { avanzarDia: avanzarCultivo } = __req("src/reglas/cultivo.js");
-const { cerrarDia } = __req("src/reglas/hogar.js");
+const { cerrarDia, cuota } = __req("src/reglas/hogar.js");
+const { empezarObra, avanzarObra, efectos: efectosRancho, produccionDiaria, siguientePaso: siguientePasoRancho, edad: edadDe } = __req("src/reglas/construccion.js");
+const { trabajoDelDia, fuerzaEn, asignar, faltaEnCasa } = __req("src/reglas/familia.js");
 const { cocinar } = __req("src/reglas/cocina.js");
 const { crearLance, tirarAtarraya } = __req("src/reglas/pesca.js");
 const { crearApuntado, resolverTiro } = __req("src/reglas/caza.js");
@@ -9265,6 +10556,7 @@ class Partida {
     this.escena = new Escena();
     this.mundo3d = new Mundo3D(this.escena, this.terreno, this.reparto, { calidad: e.ajustes.calidad });
     this.personaje = new Personaje(this.escena, {});
+    this.mundo3d.ponerRancho(e.rancho?.nivel || 1, e.rancho?.construcciones || {});
     this.fauna = new Fauna(this.terreno, e.semilla);
     this.camara = new Camara();
     this.reloj = new Reloj({ dia: e.dia, hora: e.hora });
@@ -9299,6 +10591,8 @@ class Partida {
     this.hud.ponerBotones([
       { texto: '🧺 Canasta', titulo: 'Tecla I', alPulsar: () => this.abrirPanel('inventario') },
       { texto: '📖 Diario', titulo: 'Tecla J', alPulsar: () => this.abrirPanel('diario') },
+      { texto: '🛖 Rancho', titulo: 'Lo que se puede levantar', clase: 'primario',
+        alPulsar: () => { this.abrirPanel('rancho'); this.audio.clic(); } },
       { texto: '🗺️ Mapa', titulo: 'Tecla Q', alPulsar: () => { this.mapa.alternar(); this.audio.clic(); } },
       { texto: '⏸', titulo: 'Tecla Esc', alPulsar: () => this.abrirPanel('pausa') },
     ]);
@@ -9650,13 +10944,37 @@ class Partida {
     const e = this.estado;
     const dia = this.reloj.dia - (durmiendo ? 1 : 1);
     const agua = aguaDelDia(this.planClima);
+    const estacion = estacionDe(this.reloj.dia);
+
+    // --- lo que hizo la familia mientras el nino andaba en lo suyo
+    const trabajo = trabajoDelDia(e.reparto, { dia, estacion });
+    for (const o of trabajo.objetos) agregar(e.hogar.despensa, o.id, o.cantidad, 9999);
+
+    // --- lo que produce el rancho solo: huevos, leche, abono, la huerta
+    const producido = produccionDiaria(e.rancho);
+    for (const o of producido) agregar(e.hogar.despensa, o.id, o.cantidad, 9999);
+
+    // --- la milpa: el agua de la lluvia mas la que echen los que la cuidan
+    const riegoFamilia = trabajo.riegos * 0.35;
     for (const q of e.cuadros) {
-      avanzarCultivo(q, {
-        agua, temperatura: this.clima.temperatura,
-        estacion: estacionDe(this.reloj.dia), rnd: Math.random,
-      });
+      if (riegoFamilia > 0 && q.cultivo) {
+        q.humedad = limitar(q.humedad + riegoFamilia * 0.25, 0, 1.35);
+        if (trabajo.riegos >= 1) q.maleza = Math.max(0, q.maleza - 0.4);
+      }
+      avanzarCultivo(q, { agua, temperatura: this.clima.temperatura, estacion, rnd: Math.random });
     }
-    const parte = cerrarDia(e.hogar, dia);
+
+    // --- un dia de obra
+    const terminada = avanzarObra(e.rancho, { ayudantes: trabajo.obra, dia });
+    if (terminada?.terminada) this._obraTerminada(terminada);
+
+    const parte = cerrarDia(e.hogar, dia, {
+      edad: edadDe(e.rancho), faltaEnCasa: faltaEnCasa(e.reparto),
+      cocina: efectosRancho(e.rancho).cocinar > 0,
+    });
+    parte.familia = trabajo.resumen;
+    parte.producido = [...trabajo.objetos, ...producido];
+    parte.obra = terminada;
     e.contadores.estrellas += parte.estrellas;
     if (parte.estrellas === 3) e.contadores.dias3estrellas++;
 
@@ -9667,8 +10985,26 @@ class Partida {
     e.dia = this.reloj.dia;
     this.guardar();
 
-    this.paneles.abrir('resumen', { parte, hogar: e.hogar, aprendido: [] });
+    this.paneles.abrir('resumen', { parte, hogar: e.hogar, aprendido: [], estado: e });
     this._comprobarCapitulo();
+  }
+
+  /** Se acabo una obra: cambia el rancho, suena y se cuenta. */
+  _obraTerminada(fin) {
+    const e = this.estado;
+    this.mundo3d.ponerRancho(e.rancho.nivel, e.rancho.construcciones);
+    this.audio.logro();
+    if (fin.tipo === 'rancho') {
+      this.hud.aviso(`${fin.icono} ${fin.nombre}. Ya tenés ${fin.edad} años.`, 'premio', 8000);
+      for (const a of fin.abre || []) this.hud.aviso(`Ahora podés: ${a}`, 'premio', 6500);
+      this.dialogo.mostrar([
+        { quien: 'narrador', texto: `Se terminó: ${fin.nombre.toLowerCase()}.` },
+        { quien: 'papa', texto: fin.definicion.descripcion },
+      ], () => this.guardar());
+    } else {
+      this.hud.aviso(`${fin.icono} ${fin.nombre}: ${fin.texto}`, 'premio', 7000);
+    }
+    this.guardar();
   }
 
   dormir() {
@@ -10003,6 +11339,20 @@ class Partida {
         else if (clave === 'volumen') { this.audio.ponerVolumen(valor); this.audio.clic(); }
         else this.hud.aviso('Se aplica al volver a entrar al juego.', 'neutro', 5000);
       },
+      alConstruir: (id) => {
+        const e = this.estado;
+        const r = empezarObra(e.rancho, id, this.reloj.dia, e.hogar.despensa, e.jugador.inventario);
+        if (!r.ok) { this.hud.aviso(r.motivo, 'malo', 5000); this.audio.aviso(false); return; }
+        this.audio.hachazo(true);
+        this.hud.aviso(`Empezó la obra: ${r.obra.texto} (${r.obra.dias} día${r.obra.dias > 1 ? 's' : ''})`, 'premio', 6000);
+        this.guardar();
+      },
+      alAsignar: (idPersona, tarea) => {
+        const r = asignar(this.estado.reparto, idPersona, tarea);
+        if (!r.ok) { this.hud.aviso(r.motivo, 'malo'); return; }
+        this.audio.clic();
+        this.guardar();
+      },
       alGuardar: () => { this.guardar(); this.hud.aviso('Partida guardada.', 'bueno'); },
       alReiniciar: () => { if (confirm('¿Empezar de nuevo? Se pierde la partida.')) this.alSalir?.('nueva'); },
       alAmanecer: () => { this.hud.aviso(suceso('amanecer'), 'neutro', 4200); },
@@ -10045,11 +11395,16 @@ class Partida {
       marcadores: this._marcadoresMapa(),
     });
 
+    const efec = efectosRancho(e.rancho);
     this.hud.actualizar({
       reloj: this.reloj, dia: this.reloj.dia, clima: this.clima,
       necesidades: e.jugador.necesidades,
       peso: peso(e.jugador.inventario),
-      cargaMaxima: cargaMaxima(e.jugador.inventario, nivel(e.jugador.habilidades, 'fuerza')),
+      cargaMaxima: cargaMaxima(e.jugador.inventario, nivel(e.jugador.habilidades, 'fuerza')) + efec.cargaExtra,
+      rancho: {
+        nivel: e.rancho.nivel, edad: edadDe(e.rancho), obra: e.rancho.obra,
+        paso: siguientePasoRancho(e.rancho, e.hogar.despensa, e.jugador.inventario),
+      },
       capitulo: capituloActivo(e) ? { capitulo: capituloActivo(e), ...evaluarCapitulo(capituloActivo(e), e) } : null,
     });
     this.dialogo.actualizar(dt);

@@ -94,6 +94,8 @@ export function repartir(terreno, op = {}) {
         recursos.push({ id: `m${idRecurso++}`, tipo: 'mata', especie, x, y, z, planta });
       } else if (especie === 'seco') {
         recursos.push({ id: `l${idRecurso++}`, tipo: 'lena', especie, x, y, z, planta });
+      } else if (especie === 'palmera') {
+        recursos.push({ id: `p${idRecurso++}`, tipo: 'palmera', especie, x, y, z, planta });
       }
     }
   }

@@ -28,39 +28,71 @@
  *   {tipo:'estrellas', meta:3}                     dias de 3 estrellas acumulados
  */
 
+/**
+ * En la casa son nueve: el padre, la madre y siete hijos —cinco varones y dos
+ * hembras—. El nino es uno de los varones, y es el unico que se juega: los
+ * demas ayudan, mandan y ensenan, pero la historia es la suya.
+ *
+ * Los nombres son de relleno hasta que lleguen los de verdad
+ * (ver docs/RECUERDOS.md).
+ */
 export const PERSONAJES = {
-  nino:   { nombre: 'Tino', color: '#f5c77e' },
-  mama:   { nombre: 'Mamá Rosa', color: '#f2a4a4' },
-  papa:   { nombre: 'Papá Chepe', color: '#8fb8e8' },
-  abuela: { nombre: 'Abuela Juana', color: '#c9a6e8' },
-  meches: { nombre: 'Meches', color: '#8fe0c0' },
-  perro:  { nombre: 'Lucero', color: '#d9b48f' },
+  nino:    { nombre: 'Vos', color: '#f5c77e' },
+  mama:    { nombre: 'Mamá', color: '#f2a4a4' },
+  papa:    { nombre: 'Papá', color: '#8fb8e8' },
+  mayor:   { nombre: 'El mayor', color: '#9fd08a' },
+  hermana: { nombre: 'La hermana mayor', color: '#8fe0c0' },
+  chiquito: { nombre: 'El chiquito', color: '#e0c08f' },
+  abuela:  { nombre: 'Abuela', color: '#c9a6e8' },
+  perro:   { nombre: 'El perro', color: '#d9b48f' },
   narrador: { nombre: '', color: '#cfd8e3' },
 };
 
 export const CAPITULOS = [
   {
     id: 'agua',
-    titulo: 'El mandado del agua',
-    subtitulo: 'En esta casa no hay tubería. El agua se trae.',
+    titulo: 'Andá a acarrear agua',
+    subtitulo: 'Seis años. En esta choza no hay luz, no hay agua y no hay gas.',
     requiere: [],
     intro: [
-      { quien: 'narrador', texto: 'Amanece en el valle. Huele a tierra mojada y a humo del fogón de al lado.' },
-      { quien: 'mama', texto: 'Tino, ya te levantaste. Andá al río y traeme agua, que no hay ni para el café.' },
-      { quien: 'mama', texto: 'Y de vuelta juntá leña seca. Si viene lloviendo, la de abajo del palo no se moja.' },
-      { quien: 'nino', texto: '¿Y si me tardo?' },
-      { quien: 'mama', texto: 'Te tardás. Pero volvés.' },
+      { quien: 'narrador', texto: 'Cuatro horcones, palma arriba y el suelo de tierra. Eso es la casa. Y son nueve los que viven en ella.' },
+      { quien: 'mama', texto: 'Ya estás grande. Andá a acarrear agua, que no hay ni para el café.' },
+      { quien: 'nino', texto: '¿Con qué la traigo?' },
+      { quien: 'mama', texto: 'Con el guacal. Cuando puedas con el cántaro, te lo doy.' },
+      { quien: 'mama', texto: 'Y de vuelta, buscá leña. Sin leña no se cocina, y aquí no hay gas.' },
     ],
     objetivos: [
-      { id: 'agua', texto: 'Llevar 9 litros de agua a la casa', tipo: 'entregar', objeto: 'agua', meta: 9 },
-      { id: 'lena', texto: 'Llevar 3 leñas a la casa', tipo: 'entregar', objeto: 'lena', meta: 3 },
+      { id: 'agua', texto: 'Llevar 6 litros de agua a la casa', tipo: 'entregar', objeto: 'agua', meta: 6 },
+      { id: 'lena', texto: 'Llevar 2 leñas a la casa', tipo: 'entregar', objeto: 'lena', meta: 2 },
     ],
-    premio: { xp: { fuerza: 40 }, objetos: [{ id: 'canasta', cantidad: 1 }] },
+    premio: { xp: { fuerza: 40 }, objetos: [{ id: 'cantaro', cantidad: 1 }] },
     cierre: [
       { quien: 'mama', texto: 'Mirá vos. Con eso alcanza para hoy.' },
-      { quien: 'mama', texto: 'Tomá la canasta de tu abuelo. Ahora te cabe más.' },
+      { quien: 'mama', texto: 'Tomá el cántaro. Aguanta diez litros: son menos viajes, pero pesa más.' },
+      { quien: 'narrador', texto: 'Fue el primer mandado. Después vinieron todos los demás.' },
     ],
-    consejo: 'El cántaro se llena metiéndose al río. Cada litro pesa: si te cargás de más, te vas a cansar antes de llegar.',
+    consejo: 'El guacal aguanta cuatro litros; el cántaro, diez. Cada litro pesa un kilo: mirá la carga abajo a la izquierda antes de arrancar.',
+  },
+  {
+    id: 'fogon',
+    titulo: 'Tres piedras y el comal',
+    subtitulo: 'Lo primero que se levanta en un rancho es dónde cocinar',
+    requiere: ['agua'],
+    intro: [
+      { quien: 'mama', texto: 'El fogón se cayó con el agua de anoche. Traé piedra del río y leña seca.' },
+      { quien: 'papa', texto: 'Tres piedras bien puestas y el comal encima. Eso es todo, y sin eso no comemos.' },
+    ],
+    objetivos: [
+      { id: 'piedra', texto: 'Llevar 8 piedras a la casa', tipo: 'entregar', objeto: 'piedra', meta: 8 },
+      { id: 'obra', texto: 'Levantar el fogón (pestaña Rancho)', tipo: 'construccion', construccion: 'fogon', meta: 1 },
+      { id: 'cocinar', texto: 'Hacer tortillas en el fogón', tipo: 'cocinar', receta: 'tortilla', meta: 1 },
+    ],
+    premio: { xp: { oficio: 45, fuerza: 20 }, sabe: ['cocina'] },
+    cierre: [
+      { quien: 'mama', texto: 'Ahora sí. Mientras haya fuego, hay casa.' },
+      { quien: 'abuela', texto: 'Y el que sabe hacer fuego no pasa hambre en ningún lado.' },
+    ],
+    consejo: 'En la pestaña Rancho está todo lo que se puede levantar: cada cosa pide materiales y días de trabajo. Manda gente a la obra y se acaba antes.',
   },
   {
     id: 'monte',
@@ -128,24 +160,49 @@ export const CAPITULOS = [
   },
   {
     id: 'caza',
-    titulo: 'La hondilla',
-    subtitulo: 'Acercarse sin que te huelan',
+    titulo: 'Aves y garrobos',
+    subtitulo: 'La carne no se compra: se busca',
     requiere: ['monte'],
     intro: [
+      { quien: 'papa', texto: 'Hoy no hay carne. Agarrá la hondilla y andate al monte.' },
+      { quien: 'papa', texto: 'Aves, las que se dejen. Y garrobo, si aprieta el sol: sale a asolearse a la piedra y se queda quieto, creyendo que no lo ves.' },
       { quien: 'papa', texto: 'Los animales oyen mejor que vos y huelen mucho mejor. Si el viento va de vos hacia ellos, ya perdiste.' },
       { quien: 'papa', texto: 'Agachate. Andá despacio. Y tirá una sola vez.' },
     ],
     objetivos: [
       { id: 'arma', texto: 'Hacer una hondilla', tipo: 'cocinar', receta: 'hondilla', meta: 1 },
-      { id: 'cazar', texto: 'Cobrar una pieza', tipo: 'accion', accion: 'cazar', meta: 1 },
+      { id: 'cazar', texto: 'Cobrar dos piezas en el monte', tipo: 'accion', accion: 'cazar', meta: 2 },
       { id: 'comida', texto: 'Asar la carne y llevarla a la casa', tipo: 'entregar', objeto: 'carne_asada', meta: 1 },
     ],
     premio: { xp: { caza: 80 }, sabe: ['rastro'] },
     cierre: [
       { quien: 'papa', texto: 'Hoy hay carne por vos.' },
-      { quien: 'abuela', texto: 'Y del monte se toma lo que hace falta, no más. El que agarra de más, un día no encuentra nada.' },
+      { quien: 'mama', texto: 'Nueve bocas, y hoy una la llenaste vos.' },
+      { quien: 'abuela', texto: 'Del monte se toma lo que hace falta, no más. El que agarra de más, un día no encuentra nada.' },
     ],
-    consejo: 'Mirá de dónde viene el viento antes de acercarte. Agachado hacés la mitad de ruido.',
+    consejo: 'El garrobo sale a la piedra al mediodía y solo cuando aprieta el verano. Se queda quieto: acercate despacio y no lo asustés, porque arranca como un rayo.',
+  },
+  {
+    id: 'corredor',
+    titulo: 'El corredor',
+    subtitulo: 'Que la leña no se moje y se pueda estar cuando llueve',
+    requiere: ['fogon', 'monte'],
+    intro: [
+      { quien: 'papa', texto: 'Vamos a alargarle el techo por delante. Con eso la leña se guarda seca y cuando llueve no hay que meterse todos adentro.' },
+      { quien: 'papa', texto: 'Hace falta madera, palma y bejuco. La palma se corta de las palmeras de la ribera; el bejuco, en el monte.' },
+      { quien: 'mayor', texto: 'Yo te ayudo con la madera. Entre los dos se hace en la mitad.' },
+    ],
+    objetivos: [
+      { id: 'madera', texto: 'Llevar 8 maderas a la casa', tipo: 'entregar', objeto: 'madera', meta: 8 },
+      { id: 'palma', texto: 'Llevar 10 palmas a la casa', tipo: 'entregar', objeto: 'palma', meta: 10 },
+      { id: 'rancho', texto: 'Subir el rancho a nivel 2', tipo: 'rancho', meta: 2 },
+    ],
+    premio: { xp: { oficio: 60, fuerza: 40, espiritu: 25 } },
+    cierre: [
+      { quien: 'narrador', texto: 'Esa noche llovió, y por primera vez la leña amaneció seca.' },
+      { quien: 'mama', texto: 'Ya tenés siete años y ya se te nota en la casa.' },
+    ],
+    consejo: 'Manda a tu papá y a tu hermano mayor a la obra desde la pestaña Familia: cada uno adelanta medio día de trabajo.',
   },
   {
     id: 'aguacero',
@@ -155,7 +212,7 @@ export const CAPITULOS = [
     intro: [
       { quien: 'abuela', texto: 'Mirá el cielo por el lado del monte. Eso que viene negro no es sombra.' },
       { quien: 'mama', texto: 'Meté la leña bajo el corredor antes de que caiga, o mañana comemos frío.' },
-      { quien: 'meches', texto: '¡Y después salimos a mojarnos! ¿Verdad que sí?' },
+      { quien: 'chiquito', texto: '¡Y después salimos a mojarnos! ¿Verdad que sí?' },
     ],
     objetivos: [
       { id: 'lena', texto: 'Tener 6 leñas guardadas antes del aguacero', tipo: 'entregar', objeto: 'lena', meta: 6 },
@@ -164,7 +221,7 @@ export const CAPITULOS = [
     ],
     premio: { xp: { espiritu: 70, fuerza: 30 }, sabe: ['cocina'] },
     cierre: [
-      { quien: 'meches', texto: '¡Estás todo enlodado!' },
+      { quien: 'hermana', texto: '¡Estás todo enlodado! Y adiviná quién lava.' },
       { quien: 'nino', texto: 'Vos también.' },
       { quien: 'abuela', texto: 'Déjenlos, Rosa. Un aguacero se juega una vez y se acuerda toda la vida.' },
     ],

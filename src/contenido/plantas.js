@@ -22,6 +22,8 @@ export const HALLAZGOS = [
   { id: 'hierbas', objeto: 'hierbas', fuente: 'monte', zonas: ['monte', 'ribera'], meses: [], peso: 8, cantidad: [1, 3], xp: 3 },
   { id: 'hongos', objeto: 'hongos', fuente: 'monte', zonas: ['monte'], meses: [4, 5, 6, 7, 8, 9], peso: 7, cantidad: [1, 4], xp: 6, requiere: 'hongos', trasLluvia: true },
   { id: 'fibra', objeto: 'fibra', fuente: 'monte', zonas: ['monte', 'potrero'], meses: [], peso: 6, cantidad: [2, 5], xp: 2 },
+  { id: 'bejuco', objeto: 'bejuco', fuente: 'monte', zonas: ['monte', 'ribera'], meses: [], peso: 7, cantidad: [2, 4], xp: 3 },
+  { id: 'vara', objeto: 'madera', fuente: 'monte', zonas: ['monte'], meses: [], peso: 4, cantidad: [1, 2], xp: 4 },
   { id: 'ocote', objeto: 'ocote', fuente: 'monte', zonas: ['monte'], meses: [], peso: 5, cantidad: [1, 3], xp: 3 },
   { id: 'yuca', objeto: 'yuca', fuente: 'monte', zonas: ['monte', 'potrero'], meses: [], peso: 3, cantidad: [1, 2], xp: 6 },
   { id: 'guayaba', objeto: 'guayaba', fuente: 'monte', zonas: ['monte', 'ribera'], meses: [7, 8, 9, 10], peso: 5, cantidad: [1, 4], xp: 4 },
@@ -39,9 +41,14 @@ export const HALLAZGOS = [
   { id: 'tomate', objeto: 'tomate', fuente: 'casa', zonas: ['casa'], meses: [], peso: 4, cantidad: [1, 3], xp: 2 },
 ];
 
-/** Lena: lo que se junta del suelo o se raja de un tronco. */
+/** Lena y madera: lo que se junta del suelo, se raja o se labra. */
 export const LENA = {
   tronco: { objeto: 'tronco', cantidad: [1, 1], xp: 5, requiereMachete: false },
   rajar: { objeto: 'lena', cantidad: [3, 3], xp: 4, requiereMachete: true },
   suelo: { objeto: 'lena', cantidad: [1, 3], xp: 3 },
+  // Labrar es lo que convierte el monte en rancho: mas trabajo, mejor material.
+  labrar: { objeto: 'madera', cantidad: [2, 3], xp: 8, requiereMachete: true },
 };
+
+/** La palma del techo sale de las palmeras de la ribera. */
+export const PALMA = { objeto: 'palma', cantidad: [2, 4], conMachete: [4, 7], xp: 5 };

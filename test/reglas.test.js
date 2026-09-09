@@ -13,6 +13,9 @@ import { CULTIVOS } from '../src/contenido/cultivos.js';
 import { HALLAZGOS } from '../src/contenido/plantas.js';
 import { PECES } from '../src/contenido/peces.js';
 import { CAPITULOS, PERSONAJES } from '../src/contenido/capitulos.js';
+import { construccion, nivelRancho, edadEn, NIVELES_RANCHO, CONSTRUCCIONES, MAX_RANCHO } from '../src/contenido/construcciones.js';
+import { crearRancho, edad, topeDe, siguienteNivel, faltaPara, puedeEmpezar, empezarObra, avanzarObra, efectos, produccionDiaria, siguientePaso, progreso } from '../src/reglas/construccion.js';
+import { TAREAS, FAMILIA, crearReparto, asignar, cuantosEn, fuerzaEn, trabajoDelDia, faltaEnCasa } from '../src/reglas/familia.js';
 import { AMBIENTE, frasePara } from '../src/contenido/dialogos.js';
 import { crearInventario, agregar, quitar, cuenta, peso, cargaMaxima, listar, transferir, valorTotal, CARGA_BASE } from '../src/reglas/inventario.js';
 import { crearNecesidades, actualizar, comer, beber, banarse, dormir, penalizaciones, ACTIVIDADES } from '../src/reglas/necesidades.js';
@@ -22,7 +25,7 @@ import { buscar, posibles, juntarLena, disponible, agotar } from '../src/reglas/
 import { crearLance, avanzarLance, calidadPunto, elegirPez, cobrar, tirarAtarraya } from '../src/reglas/pesca.js';
 import { crearApuntado, posicionMira, disparar, resolverTiro, revisarTrampa, probabilidadEstimada, ARMAS } from '../src/reglas/caza.js';
 import { disponibles as recetasDisponibles, puedeCocinar, cocinar } from '../src/reglas/cocina.js';
-import { crearHogar, entregar, entregarTodo, faltantes, cerrarDia, racionesDisponibles, valorAporte, humorFamilia, CONSUMO } from '../src/reglas/hogar.js';
+import { crearHogar, entregar, entregarTodo, faltantes, cerrarDia, racionesDisponibles, valorAporte, humorFamilia, CONSUMO, cuota } from '../src/reglas/hogar.js';
 import { partidaNueva, guardar, cargar, contar, contarEntrega, contarReceta, conocimientos, contadoresNuevos } from '../src/nucleo/estado.js';
 import { disponibles as capitulosDisponibles, activar, evaluarObjetivo, evaluarCapitulo, intentarCompletar, resumen, hechos } from '../src/reglas/progresion.js';
 import { interaccionesCerca, ejecutar, cargaRelativa } from '../src/reglas/acciones.js';
@@ -68,7 +71,7 @@ test('los cultivos, hallazgos y peces apuntan a objetos reales', () => {
 test('los capitulos forman una cadena valida y sin objetivos imposibles', () => {
   const ids = new Set(CAPITULOS.map((c) => c.id));
   const tipos = new Set(['entregar', 'entregarCategoria', 'juntar', 'accion', 'cocinar', 'sembrar',
-    'cosechar', 'habilidad', 'dias', 'estrellas', 'valor', 'lugar']);
+    'cosechar', 'habilidad', 'dias', 'estrellas', 'valor', 'lugar', 'rancho', 'construccion']);
   for (const c of CAPITULOS) {
     assert.ok(c.titulo && c.subtitulo && c.consejo, `${c.id} incompleto`);
     for (const r of c.requiere) assert.ok(ids.has(r), `${c.id} depende de ${r}, que no existe`);
@@ -79,6 +82,12 @@ test('los capitulos forman una cadena valida y sin objetivos imposibles', () => 
       if (o.objeto) assert.ok(OBJETOS[o.objeto], `${c.id}/${o.id} pide ${o.objeto}`);
       if (o.receta) assert.ok(receta(o.receta), `${c.id}/${o.id} pide la receta ${o.receta}`);
       if (o.habilidad) assert.ok(HABILIDADES[o.habilidad], `${c.id}/${o.id} pide la habilidad ${o.habilidad}`);
+      if (o.tipo === 'construccion') {
+        assert.ok(construccion(o.construccion), `${c.id}/${o.id} pide la construccion ${o.construccion}`);
+        assert.ok(o.meta >= 1 && o.meta <= construccion(o.construccion).niveles.length,
+          `${c.id}/${o.id} pide el nivel ${o.meta} de ${o.construccion}`);
+      }
+      if (o.tipo === 'rancho') assert.ok(o.meta >= 1 && o.meta <= MAX_RANCHO, `${c.id}/${o.id} pide el rancho ${o.meta}`);
     }
     for (const linea of [...c.intro, ...c.cierre]) {
       assert.ok(PERSONAJES[linea.quien], `${c.id} habla un personaje desconocido: ${linea.quien}`);
@@ -382,13 +391,17 @@ test('la despensa de la casa completa lo que falta en la canasta', () => {
 // ---------------------------------------------------------------- hogar
 test('la casa consume cada dia y lo puntua', () => {
   const h = crearHogar();
-  const f = faltantes(h);
-  assert.deepEqual(f, { agua: CONSUMO.agua, lena: CONSUMO.lena, raciones: CONSUMO.raciones });
+  const c = cuota(6);
+  const f = faltantes(h, 6);
+  assert.equal(f.agua, c.agua);
+  assert.equal(f.lena, c.lena);
+  assert.equal(f.raciones, c.raciones);
+  assert.ok(c.agua < CONSUMO.agua, 'a los seis anos no se le pide la casa entera');
   const inv = crearInventario({ agua: 10, lena: 4, tortilla: 3, pescado_asado: 2 });
   const entregas = entregarTodo(h, inv);
   assert.ok(entregas.length >= 3);
   assert.equal(Object.keys(inv).length, 0, 'tendria que haber entregado todo');
-  assert.ok(racionesDisponibles(h.despensa) >= CONSUMO.raciones);
+  assert.ok(racionesDisponibles(h.despensa) >= c.raciones);
   const parte = cerrarDia(h, 1);
   assert.equal(parte.faltas, 0);
   assert.ok(parte.estrellas >= 2);
@@ -407,6 +420,54 @@ test('un dia sin traer nada cuesta estrellas y animo', () => {
   assert.ok(humorFamilia(h).length > 0);
 });
 
+test('la cuota del nino crece con la edad hasta la casa entera', () => {
+  const nino = cuota(6), mozo = cuota(14), hombre = cuota(21);
+  assert.ok(nino.agua < mozo.agua && mozo.agua < hombre.agua);
+  assert.equal(hombre.agua, CONSUMO.agua, 'de grande le toca la casa entera');
+  assert.ok(nino.lena >= 1 && nino.raciones >= 1);
+});
+
+test('el mandado es del nino: lo que traen los hermanos no se lo hace', () => {
+  const h = crearHogar();
+  const c = cuota(6);
+  // La familia llena la despensa mientras el nino anda jugando en el rio.
+  agregar(h.despensa, 'agua', 30, 999);
+  agregar(h.despensa, 'lena', 10, 999);
+  agregar(h.despensa, 'tortilla', 6, 999);
+  const sinIr = faltantes(h, 6);
+  assert.equal(sinIr.agua, c.agua, 'la despensa llena no le cuenta como mandado hecho');
+  assert.equal(sinIr.lena, c.lena);
+  assert.equal(sinIr.raciones, 0, 'de comer sí se sirve de lo que hay');
+  assert.ok(cerrarDia(h, 1, { edad: 6 }).faltas >= 2, 'un dia sin ir por agua es un mal dia');
+
+  // Ahora sí va él.
+  const inv = crearInventario({ agua: c.agua, lena: c.lena });
+  entregarTodo(h, inv);
+  const fue = faltantes(h, 6);
+  assert.equal(fue.agua, 0);
+  assert.equal(fue.lena, 0);
+  const parte = cerrarDia(h, 2, { edad: 6 });
+  assert.equal(parte.faltas, 0);
+  assert.ok(h.traidoHoy && Object.keys(h.traidoHoy).length === 0, 'cada dia empieza de cero');
+});
+
+test('lo que trae la familia queda de reserva para levantar el rancho', () => {
+  const h = crearHogar();
+  const reparto = crearReparto();
+  asignar(reparto, 'mayor', 'agua');
+  asignar(reparto, 'hermano2', 'lena');
+  asignar(reparto, 'hermano3', 'lena');
+  const dia = trabajoDelDia(reparto, { dia: 1, estacion: 'seca' });
+  for (const o of dia.objetos) agregar(h.despensa, o.id, o.cantidad, 9999);
+  const inv = crearInventario({ agua: cuota(6).agua, lena: cuota(6).lena });
+  entregarTodo(h, inv);
+  const antesAgua = cuenta(h.despensa, 'agua'), antesLena = cuenta(h.despensa, 'lena');
+  cerrarDia(h, 1, { edad: 6, faltaEnCasa: faltaEnCasa(reparto) });
+  assert.ok(cuenta(h.despensa, 'agua') > 0, 'tiene que sobrar agua de la reserva');
+  assert.equal(cuenta(h.despensa, 'agua'), antesAgua - cuota(6).agua);
+  assert.equal(cuenta(h.despensa, 'lena'), antesLena - cuota(6).lena);
+});
+
 test('las herramientas no se entregan y el agua vale mas que un material', () => {
   const h = crearHogar();
   const inv = crearInventario({ machete: 1, agua: 3 });
@@ -422,16 +483,16 @@ test('los capitulos se desbloquean en cadena', () => {
   assert.deepEqual(capitulosDisponibles(e).map((c) => c.id), ['agua']);
   assert.ok(activar(e, 'agua').ok);
   assert.equal(activar(e, 'agua').ok, true, 'reactivar el activo no rompe');
-  contarEntrega(e, 'agua', 9, 'recurso');
-  contarEntrega(e, 'lena', 3, 'recurso');
-  const ev = evaluarCapitulo(e.capitulos.activo ? CAPITULOS[0] : CAPITULOS[0], e);
+  contarEntrega(e, 'agua', 6, 'recurso');
+  contarEntrega(e, 'lena', 2, 'recurso');
+  const ev = evaluarCapitulo(CAPITULOS[0], e);
   assert.ok(ev.completado);
   const fin = intentarCompletar(e);
   assert.ok(fin && fin.capitulo.id === 'agua');
-  assert.ok(cuenta(e.jugador.inventario, 'canasta') === 1, 'el premio se entrega');
+  assert.ok(cuenta(e.jugador.inventario, 'cantaro') === 1, 'el premio se entrega');
   assert.ok(hechos(e).has('agua'));
   const ahora = capitulosDisponibles(e).map((c) => c.id);
-  assert.ok(ahora.includes('monte') && ahora.includes('rio'));
+  assert.ok(ahora.includes('fogon') && ahora.includes('monte') && ahora.includes('rio'));
   const r = resumen(e);
   assert.equal(r.completados, 1);
   assert.equal(r.total, CAPITULOS.length);
@@ -499,7 +560,14 @@ test('en el rio se puede beber, llenar y banarse; en la milpa se ara', () => {
   assert.ok(ids.includes('beber') && ids.includes('llenar') && ids.includes('banar'));
 
   const r = ejecutar({ id: 'llenar' }, enRio);
-  assert.ok(r.ok && cuenta(e.jugador.inventario, 'agua') === OBJETOS.cantaro.capacidadAgua);
+  assert.ok(r.ok, 'se tiene que poder llenar con lo que se lleve');
+  assert.equal(cuenta(e.jugador.inventario, 'agua'), OBJETOS.guacal.capacidadAgua,
+    'una partida nueva empieza con guacal, no con cantaro');
+  agregar(e.jugador.inventario, 'cantaro', 1, 9);
+  quitar(e.jugador.inventario, 'agua', 99);
+  ejecutar({ id: 'llenar' }, enRio);
+  assert.equal(cuenta(e.jugador.inventario, 'agua'), OBJETOS.cantaro.capacidadAgua,
+    'con cantaro se traen diez litros');
   assert.ok(cargaRelativa(e) > 0.5, 'con el cantaro lleno se va cargado');
 
   const enMilpa = { ...base, jugador: { x: LUGARES.milpa.x, z: LUGARES.milpa.z } };
@@ -540,4 +608,256 @@ test('jugar bajo la lluvia solo se puede cuando llueve', () => {
   assert.ok(interaccionesCerca(mojado).some((o) => o.id === 'jugar_lluvia'));
   const r = ejecutar({ id: 'jugar_lluvia' }, mojado);
   assert.ok(r.ok && r.habilidad === 'espiritu' && r.xp > 10);
+});
+
+// ------------------------------------------------------------ el rancho
+test('el rancho empieza en la choza de palma y sube en cadena', () => {
+  const r = crearRancho();
+  assert.equal(r.nivel, 1);
+  assert.equal(edad(r), 6, 'a los seis anos, cuando fue el primer mandado');
+  assert.equal(progreso(r), 0);
+  const escalones = [];
+  for (let n = 1; n <= MAX_RANCHO; n++) {
+    const def = nivelRancho(n);
+    assert.ok(def && def.nombre && def.icono, `el nivel ${n} esta incompleto`);
+    escalones.push(def.edad);
+    if (n > 1) assert.ok(def.dias > 0 && Object.keys(def.coste).length > 0, `el nivel ${n} sale gratis`);
+  }
+  for (let i = 1; i < escalones.length; i++) {
+    assert.ok(escalones[i] >= escalones[i - 1], 'el nino no puede rejuvenecer');
+  }
+  assert.equal(edadEn(MAX_RANCHO), 21, 'al final, su propia casa');
+});
+
+test('ninguna construccion puede pasar del nivel del rancho', () => {
+  const r = crearRancho();
+  for (const c of CONSTRUCCIONES) {
+    assert.ok(c.requiereRancho >= 1 && c.requiereRancho <= MAX_RANCHO, `${c.id} pide un rancho imposible`);
+    assert.ok(c.niveles.length > 0 && c.nombre && c.icono, `${c.id} esta incompleto`);
+    assert.ok(topeDe(r, c.id) <= c.niveles.length);
+  }
+  assert.equal(topeDe(r, 'fogon'), 1, 'con la choza pelada solo alcanza el primer fogon');
+  r.nivel = 3;
+  assert.equal(topeDe(r, 'fogon'), 3);
+  r.construcciones.fogon = 3;
+  assert.equal(siguienteNivel(r, 'fogon'), null, 'lo que ya esta arriba no vuelve a pedirse');
+});
+
+test('los materiales de toda la obra existen como objetos', () => {
+  for (const def of NIVELES_RANCHO) {
+    for (const mat of Object.keys(def.coste || {})) assert.ok(OBJETOS[mat], `rancho ${def.nivel} pide ${mat}`);
+    for (const req of Object.keys(def.requiere || {})) assert.ok(construccion(req), `rancho ${def.nivel} pide ${req}`);
+  }
+  for (const c of CONSTRUCCIONES) {
+    for (const n of c.niveles) {
+      for (const mat of Object.keys(n.coste || {})) assert.ok(OBJETOS[mat], `${c.id} pide ${mat}`);
+      assert.ok(n.dias > 0 && n.texto, `${c.id} tiene un nivel sin dias o sin texto`);
+    }
+  }
+});
+
+test('una obra se paga, tarda dias y cambia el rancho al terminar', () => {
+  const r = crearRancho();
+  const despensa = crearInventario({});
+  const sinNada = puedeEmpezar(r, 'fogon', despensa);
+  assert.equal(sinNada.ok, false);
+  assert.ok(sinNada.faltan.length > 0 && sinNada.motivo.includes('Falta'));
+
+  const paso = siguienteNivel(r, 'fogon');
+  for (const [mat, n] of Object.entries(paso.coste)) agregar(despensa, mat, n, 999);
+  assert.deepEqual(faltaPara(paso, despensa), []);
+
+  const inicio = empezarObra(r, 'fogon', 1, despensa);
+  assert.ok(inicio.ok && r.obra && r.obra.id === 'fogon');
+  for (const mat of Object.keys(paso.coste)) {
+    assert.equal(cuenta(despensa, mat), 0, `la obra tendria que haberse cobrado el ${mat}`);
+  }
+  assert.equal(puedeEmpezar(r, 'pila', despensa).ok, false, 'solo una obra a la vez');
+
+  let fin = null;
+  for (let d = 0; d < paso.dias && !fin?.terminada; d++) fin = avanzarObra(r, { dia: d + 1 });
+  assert.ok(fin.terminada && fin.tipo === 'construccion' && fin.id === 'fogon');
+  assert.equal(r.construcciones.fogon, 1);
+  assert.equal(r.obra, null);
+  assert.equal(r.historial.length, 1);
+  assert.ok(progreso(r) > 0);
+});
+
+test('la familia en la obra adelanta los dias', () => {
+  const conAyuda = crearRancho(), solo = crearRancho();
+  const d1 = crearInventario({}), d2 = crearInventario({});
+  for (const r of [conAyuda, solo]) { r.nivel = 3; r.construcciones.fogon = 1; }
+  const paso = siguienteNivel(solo, 'troje');      // varios dias: se nota la ayuda
+  assert.ok(paso.dias >= 3);
+  for (const d of [d1, d2]) for (const [m, n] of Object.entries(paso.coste)) agregar(d, m, n, 999);
+  empezarObra(solo, 'troje', 1, d1);
+  empezarObra(conAyuda, 'troje', 1, d2);
+  let diasSolo = 0, diasConAyuda = 0, r = null;
+  while (!(r = avanzarObra(solo, { dia: ++diasSolo }))?.terminada);
+  while (!(r = avanzarObra(conAyuda, { ayudantes: 2, dia: ++diasConAyuda }))?.terminada);
+  assert.ok(diasConAyuda < diasSolo, 'entre varios se levanta antes');
+});
+
+test('subir el rancho pide tener antes lo suyo levantado', () => {
+  const r = crearRancho();
+  const despensa = crearInventario({});
+  const paso = siguienteNivel(r, 'rancho');
+  for (const [m, n] of Object.entries(paso.coste)) agregar(despensa, m, n, 999);
+  const falta = puedeEmpezar(r, 'rancho', despensa);
+  if (Object.keys(paso.requiere || {}).length) {
+    assert.equal(falta.ok, false, 'con materiales pero sin lo pedido, todavia no');
+    for (const [req, nivel] of Object.entries(paso.requiere)) r.construcciones[req] = nivel;
+  }
+  assert.ok(puedeEmpezar(r, 'rancho', despensa).ok);
+  empezarObra(r, 'rancho', 1, despensa);
+  let fin = null;
+  for (let d = 0; d < paso.dias && !fin?.terminada; d++) fin = avanzarObra(r, { dia: d + 1 });
+  assert.ok(fin.terminada && fin.tipo === 'rancho');
+  assert.equal(r.nivel, 2);
+  assert.ok(edad(r) > 6, 'al subir el rancho el nino crece');
+});
+
+test('el rancho siempre dice que hacer ahora', () => {
+  const r = crearRancho();
+  const despensa = crearInventario({});
+  const nada = siguientePaso(r, despensa);
+  assert.equal(nada.estado, 'falta');
+  assert.ok(nada.texto.includes('falta'), nada.texto);
+
+  const paso = siguienteNivel(r, 'fogon');
+  for (const [m, n] of Object.entries(paso.coste)) agregar(despensa, m, n, 999);
+  assert.equal(siguientePaso(r, despensa).estado, 'listo');
+  empezarObra(r, 'fogon', 1, despensa);
+  const enObra = siguientePaso(r, despensa);
+  assert.equal(enObra.estado, 'obra');
+  assert.ok(enObra.texto.includes('día'));
+});
+
+test('lo levantado da de comer y de beber todos los dias', () => {
+  const r = crearRancho();
+  const vacio = efectos(r);
+  assert.equal(vacio.huevosDia, 0);
+  r.nivel = 3;
+  r.construcciones.gallinero = 1;
+  r.construcciones.pila = 1;
+  const con = efectos(r);
+  assert.ok(con.huevosDia > 0, 'el gallinero pone huevos');
+  assert.ok(con.aguaGuardada > 0 || con.aguaAhorrada > 0, 'la pila guarda agua');
+  const prod = produccionDiaria(r);
+  assert.ok(prod.some((p) => p.id === 'huevo'), 'los huevos llegan a la despensa');
+});
+
+// ------------------------------------------------------------ la familia
+test('en la casa son nueve y cada quien puede lo suyo', () => {
+  assert.equal(FAMILIA.length + 1, 9, 'los padres, siete hijos y el nino');
+  for (const p of FAMILIA) {
+    assert.ok(p.id && p.nombre && p.fuerza > 0, `${p.id} incompleto`);
+    assert.ok(p.puede.length > 0, `${p.nombre} no puede hacer nada`);
+    for (const t of p.puede) assert.ok(TAREAS[t], `${p.nombre} tiene la tarea rara ${t}`);
+    if (p.porDefecto) assert.ok(p.puede.includes(p.porDefecto), `${p.nombre} empieza en algo que no puede`);
+  }
+  const reparto = crearReparto();
+  assert.ok(Object.values(reparto).includes('casa'), 'alguien tiene que sostener la casa');
+});
+
+test('repartir el trabajo del dia cambia lo que entra a la casa', () => {
+  const reparto = crearReparto();
+  const quieto = trabajoDelDia(reparto, { dia: 1, estacion: 'seca' });
+  assert.equal(quieto.objetos.length, 0, 'en la casa no se acarrea agua');
+
+  assert.equal(asignar(reparto, 'papa', 'agua').ok, false, 'el agua es mandado de los hijos');
+  assert.ok(asignar(reparto, 'mayor', 'agua').ok);
+  assert.ok(asignar(reparto, 'hermano2', 'lena').ok);
+  const dia = trabajoDelDia(reparto, { dia: 1, estacion: 'seca' });
+  assert.ok(dia.objetos.find((o) => o.id === 'agua')?.cantidad > 0);
+  assert.ok(dia.objetos.find((o) => o.id === 'lena')?.cantidad > 0);
+  assert.equal(dia.resumen.length, Object.keys(reparto).length);
+
+  assert.equal(faltaEnCasa(reparto), 0);
+  for (const id of Object.keys(reparto)) if (reparto[id] === 'casa') asignar(reparto, id, 'monte');
+  assert.equal(faltaEnCasa(reparto), 1, 'si nadie queda en la casa, se nota');
+  assert.ok(trabajoDelDia(reparto, { dia: 2, estacion: 'lluvias' }).objetos.length > 0);
+});
+
+test('los ayudantes de la obra se cuentan por fuerza', () => {
+  const reparto = crearReparto();
+  assert.equal(fuerzaEn(reparto, 'obra'), 0);
+  assert.ok(asignar(reparto, 'papa', 'obra').ok);
+  const solo = fuerzaEn(reparto, 'obra');
+  assert.ok(solo > 0);
+  assert.ok(asignar(reparto, 'mayor', 'obra').ok);
+  assert.ok(fuerzaEn(reparto, 'obra') > solo);
+  assert.equal(cuantosEn(reparto, 'obra'), 2);
+  const chiquito = FAMILIA.find((p) => !p.puede.includes('obra'));
+  if (chiquito) assert.equal(asignar(reparto, chiquito.id, 'obra').ok, false, 'no todos aguantan la obra');
+});
+
+test('se puede subir de la choza de palma hasta la casa propia', () => {
+  const r = crearRancho();
+  const despensa = crearInventario({});
+  const surtir = (paso) => { for (const [m, n] of Object.entries(paso.coste || {})) agregar(despensa, m, n, 9999); };
+  const levantar = (id, dia) => {
+    const paso = siguienteNivel(r, id);
+    surtir(paso);
+    const inicio = empezarObra(r, id, dia, despensa);
+    assert.ok(inicio.ok, `no se pudo empezar ${id}: ${inicio.motivo}`);
+    let fin = null;
+    for (let d = 0; d < paso.dias * 2 && !fin?.terminada; d++) fin = avanzarObra(r, { dia });
+    assert.ok(fin.terminada, `${id} nunca termino`);
+    return paso.dias;
+  };
+
+  let dia = 1;
+  while (r.nivel < MAX_RANCHO) {
+    const antes = r.nivel;
+    // Lo que el siguiente escalon del rancho exige tener ya levantado.
+    for (const [req, nivel] of Object.entries(siguienteNivel(r, 'rancho').requiere || {})) {
+      while ((r.construcciones[req] || 0) < nivel) {
+        assert.ok(siguienteNivel(r, req), `${req} no llega al nivel ${nivel}`);
+        dia += levantar(req, dia);
+      }
+    }
+    dia += levantar('rancho', dia);
+    assert.equal(r.nivel, antes + 1);
+    assert.ok(dia < 4000, 'la subida no puede ser eterna');
+  }
+  assert.equal(r.nivel, MAX_RANCHO);
+  assert.equal(edad(r), 21);
+  assert.ok(efectos(r).propia, 'al final la casa es suya');
+
+  // Y con el rancho arriba, todo lo demas se puede terminar tambien.
+  for (const c of CONSTRUCCIONES) {
+    while ((r.construcciones[c.id] || 0) < c.niveles.length) dia += levantar(c.id, dia);
+  }
+  assert.equal(progreso(r), 1, 'el valle se puede terminar entero');
+  assert.equal(siguientePaso(r, despensa).estado, 'nada');
+});
+
+test('la comida no se le pide hasta que hay donde cocinarla', () => {
+  const sinFogon = cuota(6, { cocina: false });
+  assert.equal(sinFogon.raciones, 0, 'a los seis, sin fogon, no se le reprocha la comida');
+  assert.ok(sinFogon.agua > 0 && sinFogon.lena > 0, 'el agua y la lena sí, desde el primer dia');
+  assert.ok(cuota(6, { cocina: true }).raciones >= 1);
+
+  const h = crearHogar();
+  const inv = crearInventario({ agua: sinFogon.agua, lena: sinFogon.lena });
+  entregarTodo(h, inv);
+  const parte = cerrarDia(h, 1, { edad: 6, cocina: false });
+  assert.equal(parte.faltas, 0, 'con agua y lena, el primer dia esta cumplido');
+  assert.ok(parte.estrellas >= 1);
+  assert.equal(parte.cubierto, 1);
+});
+
+test('el fogon enciende la cocina y ningun efecto sale en NaN', () => {
+  const r = crearRancho();
+  assert.equal(efectos(r).cocinar, 0, 'en el suelo no se cocina');
+  r.construcciones.fogon = 1;
+  assert.ok(efectos(r).cocinar > 0, 'tres piedras y un comal ya son cocina');
+
+  const todo = crearRancho();
+  todo.nivel = MAX_RANCHO;
+  for (const c of CONSTRUCCIONES) todo.construcciones[c.id] = c.niveles.length;
+  for (const [k, v] of Object.entries(efectos(todo))) {
+    if (typeof v === 'number') assert.ok(Number.isFinite(v), `el efecto ${k} salio ${v}`);
+  }
 });

@@ -103,6 +103,14 @@ html, body {
 #objetivos li.hecho .marca { background: var(--j-verde-2); border-color: var(--j-verde); }
 #objetivos li.hecho span { color: var(--j-hueso-2); text-decoration: line-through; }
 #objetivos .cuenta { font-size: 11px; color: var(--j-maiz); font-variant-numeric: tabular-nums; }
+.rancho-hud {
+  margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--j-borde);
+  display: grid; gap: 3px;
+}
+.rancho-nivel { font-size: 12px; font-weight: 700; }
+.rancho-paso { font-size: 11px; color: var(--j-hueso-2); line-height: 1.45; }
+.rancho-paso.listo { color: var(--j-verde); font-weight: 600; }
+.rancho-paso.obra { color: var(--j-fuego); }
 
 /* -------------------------------------------------------- necesidades */
 #necesidades {
@@ -242,7 +250,7 @@ html, body {
 .cuerpo::-webkit-scrollbar-thumb { background: var(--j-borde-2); border-radius: 9px; }
 
 /* rejilla de objetos */
-.rejilla-obj { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 9px; }
+.rejilla-obj { display: grid; grid-template-columns: repeat(auto-fill, minmax(152px, 1fr)); gap: 9px; }
 .obj {
   display: flex; align-items: center; gap: 10px; padding: 9px 11px;
   background: rgba(246, 239, 227, 0.06); border: 1px solid var(--j-borde);
@@ -272,6 +280,56 @@ html, body {
   background: rgba(123, 182, 98, 0.18); border: 1px solid rgba(123, 182, 98, 0.34);
 }
 .pildora.bloqueada { background: rgba(246, 239, 227, 0.05); border-color: var(--j-borde); color: var(--j-hueso-2); }
+
+/* rancho y familia */
+.rancho-cima { padding: 2px 0 14px; border-bottom: 1px solid var(--j-borde); margin-bottom: 14px; }
+.rancho-cima .riel { height: 8px; border-radius: 5px; background: rgba(0, 0, 0, 0.42); overflow: hidden; }
+.rancho-cima .relleno { height: 100%; background: linear-gradient(90deg, var(--j-verde-2), var(--j-maiz)); }
+.obra {
+  padding: 13px 15px; border-radius: var(--j-radio-s); margin-bottom: 10px;
+  background: rgba(246, 239, 227, 0.05); border: 1px solid var(--j-borde);
+}
+.obra.principal { border-color: rgba(240, 185, 92, 0.5); background: rgba(240, 185, 92, 0.09); }
+.obra.apagada { opacity: 0.5; }
+.obra .fila { display: flex; align-items: center; gap: 11px; }
+.obra .nombre { font-weight: 700; font-size: 14px; }
+.obra .detalle { font-size: 11.5px; color: var(--j-hueso-2); line-height: 1.5; }
+.obra .dias {
+  margin-left: auto; font-size: 11px; color: var(--j-maiz); white-space: nowrap;
+  padding: 3px 9px; border-radius: 999px; background: rgba(240, 185, 92, 0.14);
+}
+.obra .riel { height: 7px; border-radius: 4px; background: rgba(0, 0, 0, 0.42); overflow: hidden; }
+.obra .relleno { height: 100%; background: linear-gradient(90deg, var(--j-fuego), var(--j-maiz)); }
+.obra .materiales { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.material {
+  font-size: 10.5px; padding: 3px 8px; border-radius: 999px;
+  background: rgba(246, 239, 227, 0.06); border: 1px solid var(--j-borde);
+  font-variant-numeric: tabular-nums;
+}
+.material.hay { border-color: rgba(123, 182, 98, 0.45); color: var(--j-verde); }
+.material.falta { border-color: rgba(224, 90, 78, 0.4); color: #f0a89f; }
+.obra .abre {
+  margin-top: 9px; padding-top: 8px; border-top: 1px dashed var(--j-borde);
+  font-size: 11px; color: var(--j-maiz);
+}
+.persona {
+  padding: 11px 13px; border-radius: var(--j-radio-s); margin-bottom: 8px;
+  background: rgba(246, 239, 227, 0.05); border: 1px solid var(--j-borde);
+}
+.persona .fila { display: flex; align-items: center; gap: 10px; }
+.persona .nombre { font-weight: 700; font-size: 13px; }
+.persona .detalle { font-size: 11px; color: var(--j-hueso-2); }
+.tareas { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.pildora-tarea {
+  font-size: 11px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  background: rgba(246, 239, 227, 0.05); border: 1px solid var(--j-borde);
+  color: var(--j-hueso-2); font-family: inherit; transition: var(--j-suave);
+}
+.pildora-tarea:hover { color: var(--j-hueso); border-color: var(--j-borde-2); }
+.pildora-tarea.activa {
+  background: rgba(240, 185, 92, 0.18); border-color: rgba(240, 185, 92, 0.55); color: var(--j-hueso);
+  font-weight: 600;
+}
 
 /* capitulos */
 .capitulo {
@@ -391,7 +449,9 @@ html, body {
 .resumen-dia { text-align: center; display: grid; gap: 14px; }
 .resumen-dia .estrellas { font-size: 34px; letter-spacing: 6px; }
 .resumen-dia .frase { font-family: var(--j-titulo); font-size: 16px; line-height: 1.6; }
-.resumen-dia .cifras { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.cifras { display: flex; gap: 10px; flex-wrap: wrap; }
+.cifras .cifra { flex: 1 1 0; min-width: 96px; }
+.resumen-dia .cifras { justify-content: center; }
 .cifra {
   padding: 10px 15px; border-radius: var(--j-radio-s); min-width: 96px;
   background: rgba(246, 239, 227, 0.06); border: 1px solid var(--j-borde);
@@ -403,6 +463,8 @@ html, body {
 .vacio { text-align: center; padding: 30px 16px; color: var(--j-hueso-2); font-size: 13px; }
 .fila-botones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .nota { font-size: 11.5px; color: var(--j-hueso-2); line-height: 1.6; }
+.nota-titulo { font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--j-hueso-2); margin: 0 0 7px; opacity: .85; }
 .oculto { display: none !important; }
 
 @media (max-width: 720px) {

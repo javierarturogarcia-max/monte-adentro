@@ -34,7 +34,13 @@ export class Hud {
     this.tituloCap = el('h3', { texto: 'Sin capítulo' });
     this.subCap = el('p', { clase: 'sub', texto: '' });
     this.listaObj = el('ul');
-    this.objetivos = el('div', { clase: 'tarjeta', id: 'objetivos' }, [this.tituloCap, this.subCap, this.listaObj]);
+    // El rancho va debajo de los objetivos y no se va nunca: es la cuesta
+    // larga del juego, y conviene tenerla siempre delante.
+    this.ranchoNivel = el('div', { clase: 'rancho-nivel', texto: '' });
+    this.ranchoPaso = el('div', { clase: 'rancho-paso', texto: '' });
+    this.cajaRancho = el('div', { clase: 'rancho-hud' }, [this.ranchoNivel, this.ranchoPaso]);
+    this.objetivos = el('div', { clase: 'tarjeta', id: 'objetivos' },
+      [this.tituloCap, this.subCap, this.listaObj, this.cajaRancho]);
 
     // necesidades
     this.barras = {};
@@ -110,7 +116,19 @@ export class Hud {
         }
       }
     } else {
-      this.objetivos.classList.add('oculto');
+      this.tituloCap.textContent = 'El rancho';
+      this.subCap.textContent = 'Levantar la casa, día a día.';
+      vaciar(this.listaObj);
+      this.objetivos.classList.remove('oculto');
+    }
+
+    // --- el rancho, siempre visible
+    if (d.rancho) {
+      const r = d.rancho;
+      this.ranchoNivel.textContent = `🛖 Nivel ${r.nivel} · ${r.edad} años`;
+      const paso = r.paso;
+      this.ranchoPaso.textContent = paso ? paso.texto : '';
+      this.ranchoPaso.className = `rancho-paso ${paso?.estado || ''}`;
     }
   }
 

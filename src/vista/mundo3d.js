@@ -143,13 +143,13 @@ export class Mundo3D {
       troncos.agregar(componer([r.x, r.y, r.z], [0, r.giro || 0, 0], r.escala || 1, this.m));
     }
 
-    // --- la casa y su patio
+    // --- el rancho. Se dibuja el nivel que este levantado, y cambia en cuanto
+    // se termina una obra: ver que la choza crece es media recompensa.
     const casa = LUGARES.casa;
-    const yCasa = t.altura(casa.x, casa.z);
-    esc.lote('casa', MOD.casa(), { estatico: true })
-      .agregar(componer([casa.x, yCasa, casa.z], [0, casa.giro, 0], 1, this.m));
-    esc.lote('gallinero', MOD.gallinero(), { estatico: true })
-      .agregar(componer([casa.x + 7, t.altura(casa.x + 7, casa.z - 4), casa.z - 4], [0, 0.9, 0], 1, this.m));
+    this.yCasa = t.altura(casa.x, casa.z);
+    this.lotesChoza = {};
+    this.nivelChoza = 0;
+    this.loteGallinero = esc.lote('gallinero', MOD.gallinero(), { capacidad: 2 });
     const fog = LUGARES.fogon;
     this.yFogon = t.altura(fog.x, fog.z);
     esc.lote('fogon', MOD.fogon(), { estatico: true })
@@ -182,7 +182,8 @@ export class Mundo3D {
     // --- lotes dinamicos (fauna, particulas, marcadores)
     this.lotesFauna = {};
     for (const [tipo, hacer] of Object.entries({
-      venado: MOD.venado, conejo: MOD.conejo, gallina: MOD.gallina, pajaro: MOD.pajaro, pez: MOD.pez,
+      venado: MOD.venado, conejo: MOD.conejo, gallina: MOD.gallina, pajaro: MOD.pajaro,
+      pez: MOD.pez, garrobo: MOD.garrobo,
     })) {
       this.lotesFauna[tipo] = esc.lote(`fauna_${tipo}`, hacer(semillaFija(tipo, 0)), { capacidad: 40 });
     }
@@ -194,6 +195,30 @@ export class Mundo3D {
     this.loteQuad.comoCartel();
     this.loteFuego = esc.lote('fuego', MOD.quad(), { categoria: 'translucido', sombra: false, capacidad: 60 });
     this.loteFuego.comoCartel();
+  }
+
+  /**
+   * Pone la choza del nivel pedido y quita la anterior. Cada nivel tiene su
+   * propia malla, asi que solo se construye la primera vez que se ve.
+   */
+  ponerRancho(nivel, construcciones = {}) {
+    const n = Math.max(1, Math.min(8, nivel | 0));
+    for (const lote of Object.values(this.lotesChoza)) lote.reiniciar();
+    if (!this.lotesChoza[n]) {
+      this.lotesChoza[n] = this.escena.lote(`choza_${n}`, MOD.choza(n), { capacidad: 2 });
+    }
+    const casa = LUGARES.casa;
+    this.lotesChoza[n].agregar(
+      componer([casa.x, this.yCasa, casa.z], [0, casa.giro, 0], 1, this.m));
+    this.nivelChoza = n;
+
+    // El gallinero solo esta si se ha levantado.
+    this.loteGallinero.reiniciar();
+    if ((construcciones.gallinero || 0) > 0) {
+      const x = casa.x + 7, z = casa.z - 4;
+      this.loteGallinero.agregar(componer([x, this.terreno.altura(x, z), z], [0, 0.9, 0],
+        0.8 + (construcciones.gallinero || 1) * 0.2, this.m));
+    }
   }
 
   // ------------------------------------------------------------- dinamico

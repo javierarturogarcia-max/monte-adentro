@@ -31,7 +31,10 @@ import { peso, cargaMaxima, agregar, cuenta, quitar, transferir } from './reglas
 import { nivel, bono, ganar } from './reglas/habilidades.js';
 import { interaccionesCerca, ejecutar, cargaRelativa } from './reglas/acciones.js';
 import { avanzarDia as avanzarCultivo } from './reglas/cultivo.js';
-import { cerrarDia } from './reglas/hogar.js';
+import { cerrarDia, cuota } from './reglas/hogar.js';
+import { empezarObra, avanzarObra, efectos as efectosRancho, produccionDiaria,
+  siguientePaso as siguientePasoRancho, edad as edadDe } from './reglas/construccion.js';
+import { trabajoDelDia, fuerzaEn, asignar, faltaEnCasa } from './reglas/familia.js';
 import { cocinar } from './reglas/cocina.js';
 import { crearLance, tirarAtarraya } from './reglas/pesca.js';
 import { crearApuntado, resolverTiro } from './reglas/caza.js';
@@ -78,6 +81,7 @@ export class Partida {
     this.escena = new Escena();
     this.mundo3d = new Mundo3D(this.escena, this.terreno, this.reparto, { calidad: e.ajustes.calidad });
     this.personaje = new Personaje(this.escena, {});
+    this.mundo3d.ponerRancho(e.rancho?.nivel || 1, e.rancho?.construcciones || {});
     this.fauna = new Fauna(this.terreno, e.semilla);
     this.camara = new Camara();
     this.reloj = new Reloj({ dia: e.dia, hora: e.hora });
@@ -112,6 +116,8 @@ export class Partida {
     this.hud.ponerBotones([
       { texto: '🧺 Canasta', titulo: 'Tecla I', alPulsar: () => this.abrirPanel('inventario') },
       { texto: '📖 Diario', titulo: 'Tecla J', alPulsar: () => this.abrirPanel('diario') },
+      { texto: '🛖 Rancho', titulo: 'Lo que se puede levantar', clase: 'primario',
+        alPulsar: () => { this.abrirPanel('rancho'); this.audio.clic(); } },
       { texto: '🗺️ Mapa', titulo: 'Tecla Q', alPulsar: () => { this.mapa.alternar(); this.audio.clic(); } },
       { texto: '⏸', titulo: 'Tecla Esc', alPulsar: () => this.abrirPanel('pausa') },
     ]);
@@ -463,13 +469,37 @@ export class Partida {
     const e = this.estado;
     const dia = this.reloj.dia - (durmiendo ? 1 : 1);
     const agua = aguaDelDia(this.planClima);
+    const estacion = estacionDe(this.reloj.dia);
+
+    // --- lo que hizo la familia mientras el nino andaba en lo suyo
+    const trabajo = trabajoDelDia(e.reparto, { dia, estacion });
+    for (const o of trabajo.objetos) agregar(e.hogar.despensa, o.id, o.cantidad, 9999);
+
+    // --- lo que produce el rancho solo: huevos, leche, abono, la huerta
+    const producido = produccionDiaria(e.rancho);
+    for (const o of producido) agregar(e.hogar.despensa, o.id, o.cantidad, 9999);
+
+    // --- la milpa: el agua de la lluvia mas la que echen los que la cuidan
+    const riegoFamilia = trabajo.riegos * 0.35;
     for (const q of e.cuadros) {
-      avanzarCultivo(q, {
-        agua, temperatura: this.clima.temperatura,
-        estacion: estacionDe(this.reloj.dia), rnd: Math.random,
-      });
+      if (riegoFamilia > 0 && q.cultivo) {
+        q.humedad = limitar(q.humedad + riegoFamilia * 0.25, 0, 1.35);
+        if (trabajo.riegos >= 1) q.maleza = Math.max(0, q.maleza - 0.4);
+      }
+      avanzarCultivo(q, { agua, temperatura: this.clima.temperatura, estacion, rnd: Math.random });
     }
-    const parte = cerrarDia(e.hogar, dia);
+
+    // --- un dia de obra
+    const terminada = avanzarObra(e.rancho, { ayudantes: trabajo.obra, dia });
+    if (terminada?.terminada) this._obraTerminada(terminada);
+
+    const parte = cerrarDia(e.hogar, dia, {
+      edad: edadDe(e.rancho), faltaEnCasa: faltaEnCasa(e.reparto),
+      cocina: efectosRancho(e.rancho).cocinar > 0,
+    });
+    parte.familia = trabajo.resumen;
+    parte.producido = [...trabajo.objetos, ...producido];
+    parte.obra = terminada;
     e.contadores.estrellas += parte.estrellas;
     if (parte.estrellas === 3) e.contadores.dias3estrellas++;
 
@@ -480,8 +510,26 @@ export class Partida {
     e.dia = this.reloj.dia;
     this.guardar();
 
-    this.paneles.abrir('resumen', { parte, hogar: e.hogar, aprendido: [] });
+    this.paneles.abrir('resumen', { parte, hogar: e.hogar, aprendido: [], estado: e });
     this._comprobarCapitulo();
+  }
+
+  /** Se acabo una obra: cambia el rancho, suena y se cuenta. */
+  _obraTerminada(fin) {
+    const e = this.estado;
+    this.mundo3d.ponerRancho(e.rancho.nivel, e.rancho.construcciones);
+    this.audio.logro();
+    if (fin.tipo === 'rancho') {
+      this.hud.aviso(`${fin.icono} ${fin.nombre}. Ya tenés ${fin.edad} años.`, 'premio', 8000);
+      for (const a of fin.abre || []) this.hud.aviso(`Ahora podés: ${a}`, 'premio', 6500);
+      this.dialogo.mostrar([
+        { quien: 'narrador', texto: `Se terminó: ${fin.nombre.toLowerCase()}.` },
+        { quien: 'papa', texto: fin.definicion.descripcion },
+      ], () => this.guardar());
+    } else {
+      this.hud.aviso(`${fin.icono} ${fin.nombre}: ${fin.texto}`, 'premio', 7000);
+    }
+    this.guardar();
   }
 
   dormir() {
@@ -816,6 +864,20 @@ export class Partida {
         else if (clave === 'volumen') { this.audio.ponerVolumen(valor); this.audio.clic(); }
         else this.hud.aviso('Se aplica al volver a entrar al juego.', 'neutro', 5000);
       },
+      alConstruir: (id) => {
+        const e = this.estado;
+        const r = empezarObra(e.rancho, id, this.reloj.dia, e.hogar.despensa, e.jugador.inventario);
+        if (!r.ok) { this.hud.aviso(r.motivo, 'malo', 5000); this.audio.aviso(false); return; }
+        this.audio.hachazo(true);
+        this.hud.aviso(`Empezó la obra: ${r.obra.texto} (${r.obra.dias} día${r.obra.dias > 1 ? 's' : ''})`, 'premio', 6000);
+        this.guardar();
+      },
+      alAsignar: (idPersona, tarea) => {
+        const r = asignar(this.estado.reparto, idPersona, tarea);
+        if (!r.ok) { this.hud.aviso(r.motivo, 'malo'); return; }
+        this.audio.clic();
+        this.guardar();
+      },
       alGuardar: () => { this.guardar(); this.hud.aviso('Partida guardada.', 'bueno'); },
       alReiniciar: () => { if (confirm('¿Empezar de nuevo? Se pierde la partida.')) this.alSalir?.('nueva'); },
       alAmanecer: () => { this.hud.aviso(suceso('amanecer'), 'neutro', 4200); },
@@ -858,11 +920,16 @@ export class Partida {
       marcadores: this._marcadoresMapa(),
     });
 
+    const efec = efectosRancho(e.rancho);
     this.hud.actualizar({
       reloj: this.reloj, dia: this.reloj.dia, clima: this.clima,
       necesidades: e.jugador.necesidades,
       peso: peso(e.jugador.inventario),
-      cargaMaxima: cargaMaxima(e.jugador.inventario, nivel(e.jugador.habilidades, 'fuerza')),
+      cargaMaxima: cargaMaxima(e.jugador.inventario, nivel(e.jugador.habilidades, 'fuerza')) + efec.cargaExtra,
+      rancho: {
+        nivel: e.rancho.nivel, edad: edadDe(e.rancho), obra: e.rancho.obra,
+        paso: siguientePasoRancho(e.rancho, e.hogar.despensa, e.jugador.inventario),
+      },
       capitulo: capituloActivo(e) ? { capitulo: capituloActivo(e), ...evaluarCapitulo(capituloActivo(e), e) } : null,
     });
     this.dialogo.actualizar(dt);

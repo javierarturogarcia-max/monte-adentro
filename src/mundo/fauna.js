@@ -36,6 +36,14 @@ export const PERFILES = {
     zonas: ['casa'], horas: [[5.5, 18.5]], objetivo: 5, grupo: [2, 3],
     presa: null, xp: 0, dificultad: 0.2, radioTiro: 6,
   },
+  garrobo: {
+    nombre: 'garrobo', malla: 'garrobo', escala: 1, altura: 0.06, calor: true,
+    // Se asolea quieto en la piedra y arranca como un rayo. Ni oye ni huele
+    // mucho: al garrobo hay que llegarle de frente y sin moverse.
+    velocidad: 0.45, huida: 11, radioVista: 15, oido: 0.45, olfato: 0.25,
+    zonas: ['monte', 'ribera', 'potrero'], horas: [[10, 16.5]], objetivo: 5, grupo: [1, 2],
+    presa: { objeto: 'carne_garrobo', cantidad: 1 }, xp: 18, dificultad: 0.72, radioTiro: 13,
+  },
   pez: {
     nombre: 'pez', malla: 'pez', escala: 1, altura: -0.35, nada: true,
     velocidad: 1.3, huida: 4, radioVista: 7, oido: 0.6, olfato: 0,
@@ -63,6 +71,11 @@ export class Fauna {
     // Con lluvia fuerte los animales se recogen; el pez, al contrario, pica mas.
     if (clima?.lluvia > 0.5) n = Math.round(n * (p.nada ? 1.25 : 0.45));
     if (clima?.tormenta && !p.nada) n = Math.round(n * 0.3);
+    // El garrobo es bicho de verano: en invierno casi no sale a la piedra.
+    if (p.calor) {
+      if (clima?.estacion === 'lluvias') n = Math.round(n * 0.3);
+      if ((clima?.temperatura ?? 26) < 26) n = Math.round(n * 0.5);
+    }
     return Math.max(0, n);
   }
 

@@ -12,7 +12,10 @@ import { HABILIDADES, nivelDesde, DESBLOQUEOS } from '../reglas/habilidades.js';
 import { listar, peso, cargaMaxima } from '../reglas/inventario.js';
 import { CULTIVOS } from '../contenido/cultivos.js';
 import { disponibles as recetasDisponibles, puedeCocinar } from '../reglas/cocina.js';
-import { humorFamilia, faltantes, CONSUMO } from '../reglas/hogar.js';
+import { humorFamilia, faltantes, CONSUMO, cuota } from '../reglas/hogar.js';
+import { CONSTRUCCIONES, NIVELES_RANCHO, nivelRancho, MAX_RANCHO } from '../contenido/construcciones.js';
+import { siguienteNivel, puedeEmpezar, topeDe, progreso as progresoRancho, efectos as efectosRancho, edad as edadDe } from '../reglas/construccion.js';
+import { FAMILIA, TAREAS, persona } from '../reglas/familia.js';
 
 export class Paneles {
   constructor(raiz, acciones = {}) {
@@ -54,6 +57,8 @@ export class Paneles {
       cocina: () => this._recetas(datos, 'fogon', 'El fogón'),
       taller: () => this._recetas(datos, 'taller', 'El taller'),
       sembrar: () => this._sembrar(datos),
+      rancho: () => this._rancho(datos),
+      familia: () => this._familia(datos),
       despensa: () => this._despensa(datos),
       pausa: () => this._pausa(datos),
       resumen: () => this._resumen(datos),
@@ -229,18 +234,158 @@ export class Paneles {
     this.cuerpo.appendChild(rejilla);
   }
 
+  // ------------------------------------------------------------- rancho
+  _rancho(d) {
+    const r = d.estado.rancho;
+    const def = nivelRancho(r.nivel);
+    this.titulo.textContent = `${def.icono} ${def.nombre}`;
+    this._pestanasDe('rancho', [['rancho', 'El rancho'], ['familia', 'La familia'], ['despensa', 'Despensa']]);
+    const despensa = d.estado.hogar.despensa;
+    const inv = d.estado.jugador.inventario;
+
+    // --- cabecera: donde se esta y cuanto queda
+    this.cuerpo.appendChild(el('div', { clase: 'rancho-cima' }, [
+      el('div', {}, [
+        el('div', { clase: 'nota', texto: def.descripcion }),
+        el('div', { clase: 'riel', estilo: 'margin-top:10px' },
+          [el('div', { clase: 'relleno', estilo: `width:${pct(progresoRancho(r))}` })]),
+        el('div', { clase: 'nota', estilo: 'margin-top:5px',
+          texto: `Nivel ${r.nivel} de ${MAX_RANCHO} · ${edadDe(r)} años · levantado el ${Math.round(progresoRancho(r) * 100)} %` }),
+      ]),
+    ]));
+
+    // --- obra en marcha
+    if (r.obra) {
+      const hecho = 1 - r.obra.restante / r.obra.dias;
+      this.cuerpo.appendChild(el('div', { clase: 'obra' }, [
+        el('div', { clase: 'fila' }, [
+          el('div', { texto: '🔨', estilo: 'font-size:22px' }),
+          el('div', {}, [
+            el('div', { clase: 'nombre', texto: r.obra.texto }),
+            el('div', { clase: 'detalle', texto: `Faltan ${Math.ceil(r.obra.restante)} día(s). Manda gente a la obra para acabar antes.` }),
+          ]),
+        ]),
+        el('div', { clase: 'riel', estilo: 'margin-top:8px' },
+          [el('div', { clase: 'relleno', estilo: `width:${pct(hecho)}` })]),
+      ]));
+    }
+
+    // --- subir el rancho
+    const pasoRancho = siguienteNivel(r, 'rancho');
+    if (pasoRancho) {
+      const chequeo = puedeEmpezar(r, 'rancho', despensa, inv);
+      this.cuerpo.appendChild(this._tarjetaObra({
+        icono: pasoRancho.definicion.icono, titulo: `Subir a: ${pasoRancho.texto}`,
+        subtitulo: pasoRancho.definicion.descripcion,
+        coste: pasoRancho.coste, dias: pasoRancho.dias, despensa, inv,
+        chequeo, principal: true,
+        abre: pasoRancho.definicion.abre,
+        alPulsar: () => { this.acciones.alConstruir?.('rancho'); this.abrir('rancho', this.datos); },
+      }));
+    }
+
+    // --- construcciones
+    this.cuerpo.appendChild(el('h3', { estilo: 'font-size:13px;margin:18px 0 9px;color:var(--j-hueso-2)',
+      texto: 'Lo que se puede levantar' }));
+    for (const c of CONSTRUCCIONES) {
+      const actual = r.construcciones[c.id] || 0;
+      const paso = siguienteNivel(r, c.id);
+      const tope = topeDe(r, c.id);
+      const bloqueado = r.nivel < c.requiereRancho;
+      const chequeo = paso ? puedeEmpezar(r, c.id, despensa, inv) : { ok: false, motivo: 'Ya está al máximo.' };
+      this.cuerpo.appendChild(this._tarjetaObra({
+        icono: c.icono,
+        // El titulo dice a que se sube, no donde se esta: si ya hay fogon de
+        // nivel 1, la tarjeta es la del 2. Que se lea lo que se va a ganar.
+        titulo: c.nombre + (paso && !bloqueado && actual < tope
+          ? (actual ? ` · nivel ${actual} → ${paso.nivel}` : ` · nivel ${paso.nivel}`)
+          : (actual ? ` · nivel ${actual}${actual >= c.niveles.length ? ' · al máximo' : ''}` : '')),
+        subtitulo: bloqueado ? `Hace falta el rancho en nivel ${c.requiereRancho}.` : (paso ? paso.texto : c.descripcion),
+        coste: paso && !bloqueado ? paso.coste : null,
+        dias: paso?.dias, despensa, inv, chequeo,
+        apagado: bloqueado || !paso || actual >= tope,
+        alPulsar: () => { this.acciones.alConstruir?.(c.id); this.abrir('rancho', this.datos); },
+      }));
+    }
+  }
+
+  _tarjetaObra({ icono, titulo, subtitulo, coste, dias, despensa, inv, chequeo, alPulsar,
+    principal = false, apagado = false, abre = null }) {
+    const materiales = coste ? Object.entries(coste).map(([id, n]) => {
+      const hay = (despensa[id] || 0) + (inv[id] || 0);
+      return el('span', { clase: `material ${hay >= n ? 'hay' : 'falta'}`,
+        texto: `${OBJETOS[id]?.icono || ''} ${hay}/${n} ${OBJETOS[id]?.nombre || id}` });
+    }) : [];
+    const puede = chequeo?.ok && !apagado;
+    return el('div', { clase: `obra ${principal ? 'principal' : ''} ${apagado ? 'apagada' : ''}` }, [
+      el('div', { clase: 'fila' }, [
+        el('div', { texto: icono, estilo: 'font-size:24px' }),
+        el('div', { estilo: 'min-width:0;flex:1' }, [
+          el('div', { clase: 'nombre', texto: titulo }),
+          el('div', { clase: 'detalle', texto: subtitulo || '' }),
+        ]),
+        dias ? el('div', { clase: 'dias', texto: `${dias} día${dias > 1 ? 's' : ''}` }) : null,
+      ]),
+      materiales.length ? el('div', { clase: 'materiales' }, materiales) : null,
+      abre ? el('div', { clase: 'abre', texto: `Abre: ${abre.join(' · ')}` }) : null,
+      apagado ? null : el('div', { clase: 'fila-botones', estilo: 'margin-top:9px' }, [
+        boton(puede ? 'Empezar la obra' : (chequeo?.motivo || 'No se puede todavía'), {
+          clase: puede ? 'primario' : '', desactivado: !puede, alPulsar: puede ? alPulsar : null }),
+      ]),
+    ]);
+  }
+
+  // ------------------------------------------------------------- familia
+  _familia(d) {
+    this.titulo.textContent = 'El reparto del día';
+    this._pestanasDe('familia', [['rancho', 'El rancho'], ['familia', 'La familia'], ['despensa', 'Despensa']]);
+    const reparto = d.estado.reparto || {};
+    const c = cuota(edadDe(d.estado.rancho), { cocina: efectosRancho(d.estado.rancho).cocinar > 0 });
+    const tuyo = [`${c.agua} litros`, `${c.lena} leñas`,
+      c.raciones ? `${c.raciones} ración(es)` : null].filter(Boolean).join(', ');
+    this.cuerpo.appendChild(el('div', { clase: 'nota', estilo: 'margin-bottom:14px',
+      texto: `En la casa son nueve: cada día se gastan ${CONSUMO.agua} litros de agua, ${CONSUMO.lena} leñas y ${CONSUMO.raciones} raciones. A vos te toca traer ${tuyo}${c.raciones ? '' : ' (comida todavía no: no hay dónde cocinar)'}. Del resto se encargan ellos. Lo que traigan entra a la despensa al cerrar el día, y de ahí sale lo que se necesita para levantar el rancho.` }));
+
+    for (const p of FAMILIA) {
+      const actual = reparto[p.id] || null;
+      this.cuerpo.appendChild(el('div', { clase: 'persona' }, [
+        el('div', { clase: 'fila' }, [
+          el('div', { texto: p.icono, estilo: 'font-size:22px' }),
+          el('div', { estilo: 'flex:1;min-width:0' }, [
+            el('div', { clase: 'nombre', texto: p.nombre + (p.edad ? ` · ${p.edad} años` : '') }),
+            el('div', { clase: 'detalle', texto: p.nota || '' }),
+          ]),
+        ]),
+        el('div', { clase: 'tareas' }, [
+          ...p.puede.map((t) => el('button', {
+            clase: `pildora-tarea ${actual === t ? 'activa' : ''}`,
+            texto: `${TAREAS[t].icono} ${TAREAS[t].nombre}`,
+            titulo: TAREAS[t].descripcion,
+            alPulsar: () => { this.acciones.alAsignar?.(p.id, actual === t ? null : t); this.abrir('familia', this.datos); },
+          })),
+        ]),
+      ]));
+    }
+  }
+
   // ----------------------------------------------------------- despensa
   _despensa(d) {
     this.titulo.textContent = 'La despensa de la casa';
-    vaciar(this.pestanas);
-    const falta = faltantes(d.estado.hogar);
-    this.cuerpo.appendChild(el('div', { clase: 'cifras', estilo: 'margin-bottom:14px' }, [
-      cifra(`${CONSUMO.agua - falta.agua}/${CONSUMO.agua}`, 'litros de agua'),
-      cifra(`${CONSUMO.lena - falta.lena}/${CONSUMO.lena}`, 'leñas'),
-      cifra(`${CONSUMO.raciones - falta.raciones}/${CONSUMO.raciones}`, 'raciones'),
+    this._pestanasDe('despensa', [['rancho', 'El rancho'], ['familia', 'La familia'], ['despensa', 'Despensa']]);
+    const edad = edadDe(d.estado.rancho);
+    const falta = faltantes(d.estado.hogar, edad, { cocina: efectosRancho(d.estado.rancho).cocinar > 0 });
+    const c = falta.cuota;
+    this.cuerpo.appendChild(el('div', { clase: 'nota-titulo',
+      texto: `Tu mandado de hoy · ${edad} años` }));
+    this.cuerpo.appendChild(el('div', { clase: 'cifras', estilo: 'margin-bottom:10px' }, [
+      cifra(`${c.agua - falta.agua}/${c.agua}`, 'litros de agua'),
+      cifra(`${c.lena - falta.lena}/${c.lena}`, 'leñas'),
+      ...(c.raciones ? [cifra(`${c.raciones - falta.raciones}/${c.raciones}`, 'raciones')] : []),
     ]));
-    this.cuerpo.appendChild(el('div', { clase: 'nota', estilo: 'margin-bottom:14px' },
-      [el('span', { texto: humorFamilia(d.estado.hogar) })]));
+    this.cuerpo.appendChild(el('div', { clase: 'nota', estilo: 'margin-bottom:14px' }, [
+      el('span', { texto: `Esto es lo que trajiste vos: lo que traigan tus hermanos llena la despensa, pero el mandado no te lo hacen. Lo que sobra es con lo que se levanta el rancho. ${c.raciones ? '' : 'De comida todavía no te piden nada: primero hay que tener fogón. '}` }),
+      el('span', { texto: humorFamilia(d.estado.hogar) }),
+    ]));
     const lista = listar(d.estado.hogar.despensa);
     if (!lista.length) {
       this.cuerpo.appendChild(el('div', { clase: 'vacio', texto: 'La despensa está vacía.' }));
@@ -253,8 +398,8 @@ export class Paneles {
         alPulsar: () => { this.acciones.alTomar?.(x.id); this.abrir('despensa', this.datos); },
       }, [
         el('div', { clase: 'emoji', texto: x.objeto.icono }),
-        el('div', {}, [el('div', { clase: 'nombre', texto: x.objeto.nombre }),
-          el('div', { clase: 'detalle', texto: 'Pulsá para llevártelo' })]),
+        el('div', { estilo: 'min-width:0' }, [el('div', { clase: 'nombre', texto: x.objeto.nombre }),
+          el('div', { clase: 'detalle', texto: 'Tomar' })]),
         el('div', { clase: 'cantidad', texto: `×${x.cantidad}` }),
       ]));
     }

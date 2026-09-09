@@ -112,6 +112,12 @@ export function evaluarObjetivo(obj, estado) {
     case 'lugar':
       valor = (estado.lugaresVisitados || []).includes(obj.lugar) ? 1 : 0;
       break;
+    case 'rancho':
+      valor = estado.rancho?.nivel || 1;
+      break;
+    case 'construccion':
+      valor = estado.rancho?.construcciones?.[obj.construccion] || 0;
+      break;
     default:
       valor = 0;
   }

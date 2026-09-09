@@ -14,11 +14,16 @@ export const AMBIENTE = [
   { quien: 'abuela', texto: 'Cuando yo era chiquita, aquí abajo había venados hasta en el patio.', cuando: { horaMin: 18 } },
   { quien: 'abuela', texto: 'Sentate un rato. El monte no se va a ir.', cuando: { aguanteMax: 30 } },
   { quien: 'abuela', texto: 'Las estrellas de allá son las que marcan el norte. Aprendételas.', cuando: { horaMin: 20, nubosidadMax: 0.3 } },
-  { quien: 'meches', texto: '¿Me llevás al río? ¡Porfa!', cuando: { horaMin: 9, horaMax: 16 } },
-  { quien: 'meches', texto: '¡Está lloviendo! ¡Salí, salí!', cuando: { lluviaMin: 0.4 } },
-  { quien: 'meches', texto: 'Tenés lodo hasta en las orejas.', cuando: { higieneMax: 30 } },
+  { quien: 'chiquito', texto: '¿Me llevás al río? ¡Porfa!', cuando: { horaMin: 9, horaMax: 16 } },
+  { quien: 'chiquito', texto: '¡Está lloviendo! ¡Salí, salí!', cuando: { lluviaMin: 0.4 } },
+  { quien: 'hermana', texto: 'Tenés lodo hasta en las orejas. Y yo lavo.', cuando: { higieneMax: 30 } },
+  { quien: 'hermana', texto: 'Dejá el guacal donde va, que somos nueve buscándolo.', cuando: { horaMin: 12, horaMax: 18 } },
+  { quien: 'mayor', texto: 'Si querés te enseño a hondear garrobos. Al mediodía salen a asolearse.', cuando: { horaMin: 10, horaMax: 15 } },
+  { quien: 'mayor', texto: 'Yo cargo la leña gruesa; vos traé la menuda y no te quedés.', cuando: { horaMin: 6, horaMax: 11 } },
   { quien: 'mama', texto: 'Mañana hay que sembrar temprano, antes del sol.', cuando: { horaMin: 19, estacion: 'lluvias' } },
+  { quien: 'mama', texto: 'La palma del techo ya está rala. Cuando puedan, corten más.', cuando: { horaMin: 17, nubosidadMin: 0.6 } },
   { quien: 'papa', texto: 'En seca el agua está más lejos. Hay que ir dos veces.', cuando: { estacion: 'seca', horaMax: 10 } },
+  { quien: 'papa', texto: 'Todo lo que ves lo levantamos nosotros. Poco a poco, hijo.', cuando: { horaMin: 18, horaMax: 21 } },
 ];
 
 /** Frases del narrador al pasar cosas. Se usan como avisos con alma. */

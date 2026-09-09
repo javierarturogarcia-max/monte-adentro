@@ -11,6 +11,9 @@ import { crearInventario } from '../reglas/inventario.js';
 import { crearHabilidades, desbloqueado } from '../reglas/habilidades.js';
 import { crearHogar } from '../reglas/hogar.js';
 import { crearCuadro } from '../reglas/cultivo.js';
+import { crearRancho } from '../reglas/construccion.js';
+import { crearReparto } from '../reglas/familia.js';
+import { efectos as efectosRancho } from '../reglas/construccion.js';
 
 export const VERSION_PARTIDA = 1;
 export const CLAVE_GUARDADO = 'monteadentro.partida.v1';
@@ -27,10 +30,13 @@ export function partidaNueva(op = {}) {
     jugador: {
       x: op.x ?? 0, z: op.z ?? 0, rumbo: 0,
       necesidades: crearNecesidades(),
-      inventario: crearInventario({ cantaro: 1 }),
+      // Se empieza casi de la nada: un guacal de cuatro litros y nada mas.
+      inventario: crearInventario({ guacal: 1 }),
       habilidades: crearHabilidades(),
     },
     hogar: crearHogar(),
+    rancho: crearRancho(),
+    reparto: crearReparto(),
     cuadros: [],
     recursos: {},                    // id -> {agotadoHasta}
     trampas: [],
@@ -79,10 +85,20 @@ export function contarCultivo(estado, id, n = 1) {
   estado.contadores.cultivos[id] = (estado.contadores.cultivos[id] || 0) + n;
 }
 
-/** Todo lo que el nino sabe hacer: lo aprendido por historia + por habilidad. */
+/**
+ * Todo lo que el nino puede hacer: lo aprendido por habilidad, lo que le
+ * ensenaron en la historia y lo que le permite tener el rancho levantado (con
+ * horno se cuecen tejas, y sin horno no).
+ */
 export function conocimientos(estado) {
   const set = desbloqueado(estado.jugador.habilidades);
   for (const s of estado.sabe || []) set.add(s);
+  if (estado.rancho) {
+    const e = efectosRancho(estado.rancho);
+    if (e.hornear) set.add('hornear');
+    if (e.cocerTeja) set.add('cocerTeja');
+    if (e.cocinar) set.add('cocina');
+  }
   return set;
 }
 
@@ -128,6 +144,9 @@ export function cargar(almacenamiento = obtenerAlmacen()) {
     // Red de seguridad: una partida corrupta no debe romper el arranque.
     if (!p.jugador || !p.jugador.necesidades) return null;
     p.contadores = { ...contadoresNuevos(), ...(p.contadores || {}) };
+    // Partidas de antes de que existiera el rancho: se les pone el de nivel 1.
+    if (!p.rancho) p.rancho = crearRancho();
+    if (!p.reparto) p.reparto = crearReparto();
     return p;
   } catch {
     return null;

@@ -11,6 +11,7 @@ import { NIVEL_AGUA, LUGARES } from '../mundo/terreno.js';
 import { agregar, cuenta, quitar, peso, cargaMaxima } from './inventario.js';
 import { beber as beberNec, banarse, comer } from './necesidades.js';
 import { buscar, juntarLena, disponible, agotar } from './recoleccion.js';
+import { PALMA } from '../contenido/plantas.js';
 import { arar, sembrar, regar, deshierbar, cosechar, listoParaCosechar, etapaDe, diagnostico } from './cultivo.js';
 import { revisarTrampa, colocarTrampa, TRAMPA } from './caza.js';
 import { entregarTodo } from './hogar.js';
@@ -26,6 +27,23 @@ import { limitar, mezclar } from '../nucleo/mate.js';
  */
 export const RADIO_INTERACCION = 4.5;
 export const RADIO_RECURSO = 6.5;
+
+/**
+ * Con que se acarrea el agua. Se empieza con un guacal de cuatro litros —lo
+ * que hay cuando no hay nada— y el cantaro de diez es de las primeras cosas
+ * que cambian el dia entero.
+ */
+export function vasija(inventario) {
+  if (cuenta(inventario, 'cantaro')) {
+    return { id: 'cantaro', nombre: 'Cántaro', articulo: 'el', icono: '🏺',
+      capacidad: OBJETOS.cantaro.capacidadAgua };
+  }
+  if (cuenta(inventario, 'guacal')) {
+    return { id: 'guacal', nombre: 'Guacal', articulo: 'el', icono: '🥥',
+      capacidad: OBJETOS.guacal.capacidadAgua };
+  }
+  return null;
+}
 
 /**
  * Que tiene el nino a mano ahora mismo.
@@ -45,7 +63,11 @@ export function interaccionesCerca(ctx) {
   if (profundidad > -0.6 || dOrilla < 4.5) {
     // El orden importa: la primera opcion es la que hace la tecla E, y lo que
     // uno viene a hacer al rio es llenar el cantaro, no beber.
-    if (cuenta(inv, 'cantaro')) ops.push({ id: 'llenar', etiqueta: 'Llenar el cántaro', icono: '🏺', distancia: 0.2 });
+    const vaso = vasija(inv);
+    if (vaso) {
+      ops.push({ id: 'llenar', etiqueta: `Llenar ${vaso.articulo} ${vaso.nombre.toLowerCase()}`,
+        icono: vaso.icono, distancia: 0.2, sub: `${vaso.capacidad} L` });
+    }
     if (cuenta(inv, 'cana')) ops.push({ id: 'pescar', etiqueta: 'Pescar', icono: '🎣', distancia: 0.35 });
     if (cuenta(inv, 'atarraya')) ops.push({ id: 'atarraya', etiqueta: 'Tirar la atarraya', icono: '🕸️', distancia: 0.45 });
     ops.push({ id: 'beber', etiqueta: 'Beber agua', icono: '💧', distancia: 0.6 });
@@ -70,7 +92,11 @@ export function interaccionesCerca(ctx) {
         icono: '🪵', distancia: d, objetivo: r, desactivada: !libre });
       if (cuenta(inv, 'machete') && libre) {
         ops.push({ id: 'rajar', etiqueta: 'Rajar el tronco con el machete', icono: '🪓', distancia: d + 0.1, objetivo: r });
+        ops.push({ id: 'labrar', etiqueta: 'Labrar varas para el rancho', icono: '🪚', distancia: d + 0.2, objetivo: r });
       }
+    } else if (r.tipo === 'palmera') {
+      ops.push({ id: 'palma', etiqueta: libre ? 'Cortar palma para el techo' : 'Esta palmera ya está pelada',
+        icono: '🌴', distancia: d, objetivo: r, desactivada: !libre });
     } else if (r.tipo === 'lena') {
       ops.push({ id: 'lena_suelo', etiqueta: libre ? 'Recoger ramas secas' : 'Palo ya limpio',
         icono: '🪵', distancia: d, objetivo: r, desactivada: !libre });
@@ -159,7 +185,9 @@ export function ejecutar(op, ctx) {
       return { ok: true, texto: 'Bebiste del río. Está fría.', tiempo: 4, actividad: 'quieto' };
     }
     case 'llenar': {
-      const cap = OBJETOS.cantaro.capacidadAgua * (sabe.has('dos_cantaros') ? 2 : 1);
+      const vaso = vasija(inv);
+      if (!vaso) return { ok: false, texto: 'No tenés con qué acarrear agua.' };
+      const cap = vaso.capacidad * (sabe.has('dos_cantaros') ? 2 : 1);
       const r = agregar(inv, 'agua', cap, fuerza);
       const texto = r.anadido === 0
         ? 'No podés con más peso. Dejá algo o llevá menos.'
@@ -202,18 +230,33 @@ export function ejecutar(op, ctx) {
       };
     }
 
+    case 'palma': {
+      const conMachete = cuenta(inv, 'machete') > 0;
+      const [a, b] = conMachete ? PALMA.conMachete : PALMA.cantidad;
+      const cantidad = Math.max(1, Math.round(mezclar(a, b, rnd())));
+      if (op.objetivo) {
+        const mem = e.recursos[op.objetivo.id] || (e.recursos[op.objetivo.id] = {});
+        agotar(mem, ctx.dia, 'frutal');
+      }
+      return { ok: true, objetos: [{ id: 'palma', cantidad }], xp: PALMA.xp, habilidad: 'recoleccion',
+        texto: `${cantidad} hojas de palma`, tiempo: conMachete ? 30 : 55, actividad: 'trabajar',
+        contador: 'buscar' };
+    }
+
     case 'lena_suelo':
+    case 'labrar':
     case 'rajar': {
-      const modo = op.id === 'rajar' ? 'rajar' : 'suelo';
+      const modo = op.id === 'rajar' ? 'rajar' : op.id === 'labrar' ? 'labrar' : 'suelo';
       const r = juntarLena(modo, { rnd, tieneMachete: cuenta(inv, 'machete') > 0, bono: bono(hab, 'fuerza') });
       if (!r.ok) return { ok: false, texto: r.motivo };
       if (op.objetivo) {
         const mem = e.recursos[op.objetivo.id] || (e.recursos[op.objetivo.id] = {});
         agotar(mem, ctx.dia, 'tronco');
       }
-      return { ok: true, objetos: r.objetos, xp: r.xp, habilidad: 'fuerza', contador: 'lena',
-        texto: `${r.objetos[0].cantidad} × ${OBJETOS[r.objetos[0].id].nombre}`,
-        tiempo: modo === 'rajar' ? 90 : 35, actividad: 'trabajar', minijuego: 'lena' };
+      return { ok: true, objetos: r.objetos, xp: r.xp, habilidad: modo === 'labrar' ? 'oficio' : 'fuerza',
+        contador: 'lena', texto: `${r.objetos[0].cantidad} × ${OBJETOS[r.objetos[0].id].nombre}`,
+        tiempo: modo === 'suelo' ? 35 : modo === 'rajar' ? 90 : 120,
+        actividad: 'trabajar', minijuego: 'lena' };
     }
 
     case 'arar': {

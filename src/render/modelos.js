@@ -305,7 +305,144 @@ export function parcela() {
 }
 
 // ------------------------------------------------------------------ la casa
-/** El rancho: adobe, teja y corredor. Es el centro del juego. */
+/**
+ * El rancho, segun el nivel al que se haya levantado.
+ *
+ * Empieza siendo lo que fue: cuatro horcones, palma arriba y el suelo de
+ * tierra. Nivel a nivel le salen corredor, troje, paredes de bahareque, adobe,
+ * teja y cuartos. Es la unica malla del juego que cambia con la partida, y es
+ * a proposito: el jugador tiene que VER lo que ha levantado.
+ */
+export function choza(nivel = 1) {
+  const n = Math.max(1, Math.min(8, nivel | 0));
+  const paredes = n >= 5 ? 'adobe' : n >= 4 ? 'bahareque' : 'abierta';
+  const techo = n >= 6 ? 'teja' : 'palma';
+  const corredor = n >= 2;
+  const troje = n >= 3;
+  const cuartos = n >= 7;
+  const ancho = n >= 7 ? 5.4 : n >= 5 ? 4.6 : 4;
+  const fondo = n >= 7 ? 4.2 : n >= 5 ? 3.6 : 3.2;
+  const alto = n >= 5 ? 2.3 : 2;
+
+  return construir(`choza_${n}`, (c) => {
+    const horcon = [0.42, 0.33, 0.22];
+    // Horcones: siempre estan, hasta cuando ya hay paredes.
+    for (const sx of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        c.cilindro({ radio: 0.11, alto, lados: 6,
+          en: [sx * ancho / 2, 0, sz * fondo / 2], color: horcon });
+      }
+    }
+
+    if (paredes === 'abierta') {
+      // Cana rajada entre horcon y horcon: se ve el fuego desde fuera.
+      for (const sz of [-1, 1]) {
+        for (let k = 0; k < 11; k++) {
+          const x = -ancho / 2 + (k / 10) * ancho;
+          if (sz > 0 && Math.abs(x) < 0.55) continue;   // el hueco de la puerta
+          c.cilindro({ radio: 0.035, alto: alto * 0.92, lados: 4,
+            en: [x, 0, sz * fondo / 2], color: [0.58, 0.48, 0.30] });
+        }
+      }
+      for (const sx of [-1, 1]) {
+        for (let k = 0; k < 9; k++) {
+          c.cilindro({ radio: 0.035, alto: alto * 0.92, lados: 4,
+            en: [sx * ancho / 2, 0, -fondo / 2 + (k / 8) * fondo], color: [0.58, 0.48, 0.30] });
+        }
+      }
+    } else {
+      const color = paredes === 'adobe' ? PALETA.adobe : [0.48, 0.38, 0.28];
+      c.caja({ ancho, alto, fondo, color });
+      // Puerta y ventanas: el hueco se marca con tablas oscuras.
+      c.caja({ ancho: 1, alto: alto * 0.85, fondo: 0.12, en: [0, 0, fondo / 2 + 0.01],
+        color: [0.28, 0.19, 0.13] });
+      if (n >= 5) {
+        for (const sx of [-1, 1]) {
+          c.caja({ ancho: 0.7, alto: 0.6, fondo: 0.12,
+            en: [sx * ancho * 0.3, alto * 0.5, fondo / 2 + 0.01], color: [0.15, 0.15, 0.17] });
+        }
+      }
+    }
+
+    // El suelo es de tierra hasta que hay adobe.
+    c.rejilla({ ancho: ancho + 0.4, fondo: fondo + 0.4, divX: 2, divZ: 2,
+      alturaEn: () => 0.03, color: n >= 5 ? [0.62, 0.56, 0.48] : PALETA.tierra });
+
+    // --- techo
+    const alero = 0.55;
+    if (techo === 'palma') {
+      // Cumbrera y palma cruzada: se ve la hoja, no una plancha.
+      c.cilindro({ radio: 0.07, alto: ancho + alero, lados: 5,
+        en: [-(ancho + alero) / 2, alto + 0.72, 0], giroY: Math.PI / 2, inclina: Math.PI / 2,
+        color: horcon });
+      for (const lado of [-1, 1]) {
+        for (let k = 0; k < 14; k++) {
+          const x = -ancho / 2 - alero / 2 + (k / 13) * (ancho + alero);
+          c.hoja({ largo: fondo * 0.78, ancho: 0.5, curva: 0.22, tramos: 3,
+            en: [x, alto + 0.7, 0], giroY: lado > 0 ? 0 : Math.PI,
+            inclina: 1.05, color: tinte(PALETA.paja, (k % 3) * 0.08 - 0.08) });
+        }
+      }
+    } else {
+      for (const lado of [-1, 1]) {
+        c.caja({ ancho: ancho + alero, alto: 0.14, fondo: fondo * 0.78,
+          en: [0, alto + 0.18, lado * fondo * 0.28], inclina: lado * 0.42, color: PALETA.teja });
+      }
+      c.caja({ ancho: ancho + alero + 0.1, alto: 0.14, fondo: 0.3,
+        en: [0, alto + 0.78, 0], color: [0.44, 0.20, 0.14] });
+    }
+
+    // --- corredor delante
+    if (corredor) {
+      const largoCorredor = 1.7;
+      for (const x of [-ancho * 0.4, 0, ancho * 0.4]) {
+        c.cilindro({ radio: 0.09, alto: alto * 0.92, lados: 5,
+          en: [x, 0, fondo / 2 + largoCorredor], color: horcon });
+      }
+      if (techo === 'palma') {
+        for (let k = 0; k < 12; k++) {
+          const x = -ancho / 2 + (k / 11) * ancho;
+          c.hoja({ largo: largoCorredor * 1.15, ancho: 0.46, curva: 0.18, tramos: 2,
+            en: [x, alto + 0.42, fondo / 2], inclina: 1.35,
+            color: tinte(PALETA.paja, (k % 2) * 0.1 - 0.05) });
+        }
+      } else {
+        c.caja({ ancho: ancho + 0.3, alto: 0.12, fondo: largoCorredor + 0.5,
+          en: [0, alto + 0.3, fondo / 2 + largoCorredor / 2], inclina: 0.28, color: PALETA.teja });
+      }
+      c.rejilla({ ancho: ancho + 0.2, fondo: largoCorredor + 0.4, divX: 2, divZ: 2,
+        alturaEn: () => 0.05, en: [0, 0, fondo / 2 + largoCorredor / 2], color: [0.55, 0.48, 0.40] });
+    }
+
+    // --- troje: la mazorca guardada en alto, sobre cuatro patas
+    if (troje) {
+      const tx = ancho / 2 + 1.9;
+      for (const sx of [-1, 1]) {
+        for (const sz of [-1, 1]) {
+          c.cilindro({ radio: 0.07, alto: 0.9, lados: 4, en: [tx + sx * 0.5, 0, sz * 0.5], color: horcon });
+        }
+      }
+      c.caja({ ancho: 1.4, alto: 1.1, fondo: 1.4, en: [tx, 0.9, 0], color: [0.60, 0.50, 0.30] });
+      for (let k = 0; k < 8; k++) {
+        c.hoja({ largo: 1.1, ancho: 0.4, curva: 0.2, tramos: 2,
+          en: [tx - 0.7 + (k / 7) * 1.4, 2.0, 0], inclina: 1.1, color: PALETA.paja });
+      }
+    }
+
+    // --- segundo volumen: los cuartos
+    if (cuartos) {
+      c.caja({ ancho: 2.6, alto: alto, fondo: fondo * 0.9,
+        en: [-(ancho / 2 + 1.3), 0, 0], color: PALETA.adobe });
+      for (const lado of [-1, 1]) {
+        c.caja({ ancho: 3, alto: 0.14, fondo: fondo * 0.55,
+          en: [-(ancho / 2 + 1.3), alto + 0.16, lado * fondo * 0.22],
+          inclina: lado * 0.4, color: PALETA.teja });
+      }
+    }
+  });
+}
+
+/** El rancho ya crecido del todo. Se conserva por compatibilidad. */
 export function casa() {
   return construir('casa', (c) => {
     c.caja({ ancho: 5.2, alto: 2.5, fondo: 4.2, color: PALETA.adobe });
@@ -474,6 +611,50 @@ export function pajaro(rnd = rnd0) {
         giroY: lado * 1.5, inclina: 1.4, color: tinte(col, -0.2), oleaje: 0.6 });
     }
     c.hoja({ largo: 0.16, ancho: 0.1, curva: 0.1, tramos: 1, en: [0, 0.06, -0.11], inclina: 1.7, color: tinte(col, -0.3) });
+  });
+}
+
+/**
+ * Garrobo: cuerpo largo y pegado al suelo, cresta en el lomo y una cola que es
+ * media mitad del bicho. Se le reconoce de lejos por como se asolea en la
+ * piedra, quieto, hasta que arranca.
+ */
+export function garrobo(rnd = rnd0) {
+  return construir('garrobo', (c) => {
+    const col = tinte([0.34, 0.33, 0.24], (rnd() - 0.5) * 0.3);
+    const panza = tinte([0.52, 0.50, 0.38], (rnd() - 0.5) * 0.2);
+    // Cuerpo aplastado contra el suelo.
+    c.esfera({ radio: 0.17, lados: 8, anillos: 5, achatado: 0.45, en: [0, 0.09, 0],
+      escala: [0.75, 1, 1.9], color: col });
+    c.esfera({ radio: 0.13, lados: 6, anillos: 4, achatado: 0.3, en: [0, 0.07, 0],
+      escala: [0.7, 1, 1.7], color: panza });
+    // Cabeza y papada.
+    c.esfera({ radio: 0.09, lados: 7, anillos: 5, achatado: 0.7, en: [0, 0.1, 0.34],
+      escala: [0.85, 1, 1.35], color: col });
+    c.esfera({ radio: 0.045, lados: 5, anillos: 3, achatado: 0.9, en: [0, 0.06, 0.38], color: [0.55, 0.42, 0.24] });
+    // Cresta: la fila de espinas del lomo.
+    for (let k = 0; k < 9; k++) {
+      const t = k / 8;
+      c.cono({ radio: 0.022 - t * 0.008, alto: 0.075 - t * 0.03, lados: 3,
+        en: [0, 0.17, 0.28 - t * 0.7], color: tinte(col, -0.25) });
+    }
+    // Cola larga, en tramos que se afinan.
+    let z = -0.3, r = 0.075;
+    for (let k = 0; k < 5; k++) {
+      c.cilindro({ radio: r, radioSuperior: r * 0.72, alto: 0.16, lados: 5,
+        en: [0, 0.08, z], inclina: Math.PI / 2,
+        color: k % 2 ? tinte(col, -0.18) : col });
+      z -= 0.15; r *= 0.74;
+    }
+    // Cuatro patas abiertas, como las tiene de verdad.
+    for (const lado of [-1, 1]) {
+      for (const [pz, largo] of [[0.2, 0.13], [-0.16, 0.15]]) {
+        c.cilindro({ radio: 0.028, alto: largo, lados: 4, en: [lado * 0.1, 0.07, pz],
+          inclina: 1.15, giroY: lado * 1.2, color: col });
+        c.esfera({ radio: 0.035, lados: 5, anillos: 3, achatado: 0.4,
+          en: [lado * 0.19, 0.01, pz + 0.02], color: col });
+      }
+    }
   });
 }
 
