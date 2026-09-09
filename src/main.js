@@ -49,6 +49,7 @@ export function iniciarJuego(raiz) {
         el('div', { estilo: 'font-size:44px;line-height:1' , texto: '🌄' }),
         el('h1', { texto: 'Monte Adentro' }),
         el('p', { clase: 'lema', texto: 'Un niño del campo, un río que hay que subir a cántaros, una milpa que no perdona el olvido y un monte que da de comer al que aprende a mirarlo.' }),
+        el('p', { clase: 'firma', texto: 'Un juego de Javier Arturo García Mineros, sobre su propia infancia.' }),
         el('div', { clase: 'campo' }, [el('span', { texto: '🧒' }), entrada]),
         el('div', { clase: 'acciones' }, [
           guardada ? boton(`Seguir — día ${guardada.dia}, ${nombreFecha(guardada.dia)}`, {
@@ -70,10 +71,12 @@ export function iniciarJuego(raiz) {
           el('span', { texto: 'C agacharse' }),
           el('span', { texto: 'E interactuar' }),
           el('span', { texto: 'Espacio acción' }),
-          el('span', { texto: 'I canasta · J diario' }),
+          el('span', { texto: 'R el rancho' }),
+          el('span', { texto: 'I canasta · J diario · Q mapa' }),
           el('span', { texto: 'Arrastrar para mirar' }),
         ]),
         el('div', { clase: 'pie', texto: 'En el móvil se juega con el dedo: palanca a la izquierda, botones a la derecha. También funciona con mando. Todo se guarda en tu dispositivo.' }),
+        el('div', { clase: 'pie derechos', texto: '© 2026 Javier Arturo García Mineros. La historia, los personajes y los textos son obra suya, con todos los derechos reservados. El motor es código abierto (MIT).' }),
       ]),
     ]);
     contenedor.appendChild(capa);

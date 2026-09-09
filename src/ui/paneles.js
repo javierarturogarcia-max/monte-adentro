@@ -435,8 +435,14 @@ export class Paneles {
         boton('Empezar de nuevo', { clase: 'fantasma', alPulsar: () => this.acciones.alReiniciar?.() }),
       ]),
       el('div', { clase: 'nota', estilo: 'margin-top:18px' }, [el('span', {
-        texto: 'Teclas: WASD moverse · Shift correr · C agacharse · E interactuar · Espacio acción · I canasta · J diario · Esc pausa. También funciona con mando y con el dedo.',
+        texto: 'Teclas: WASD moverse · Shift correr · C agacharse · E interactuar · Espacio acción · R rancho · I canasta · J diario · Q mapa · Esc pausa. También funciona con mando y con el dedo.',
       })]),
+      // La autoria, donde cualquiera que juegue pueda verla.
+      el('div', { clase: 'nota', estilo: 'margin-top:14px;padding-top:12px;border-top:1px solid var(--j-borde)' }, [
+        el('div', { estilo: 'color:var(--j-maiz);margin-bottom:4px', texto: 'Monte Adentro' }),
+        el('div', { texto: 'Un juego de Javier Arturo García Mineros, sobre su propia infancia en el campo.' }),
+        el('div', { estilo: 'margin-top:4px', texto: '© 2026 Javier Arturo García Mineros. La historia, los personajes, los diálogos y los textos son obra suya: todos los derechos reservados. El motor y el código son libres bajo licencia MIT.' }),
+      ]),
     );
   }
 

@@ -1,6 +1,35 @@
+                              MONTE ADENTRO
+                    Licencia doble: el código y la obra
+
+Este proyecto tiene dos partes con derechos distintos, y conviene tenerlo
+claro antes de usar nada de aquí.
+
+  1. EL CÓDIGO es libre, bajo licencia MIT. El motor gráfico, las reglas del
+     juego, la interfaz, el empaquetador y las pruebas se pueden copiar,
+     estudiar, modificar y usar en otros proyectos, incluso comerciales.
+
+  2. LA OBRA —la historia— NO es libre. Está reservada. Es la infancia real
+     de una persona, y no se reutiliza sin su permiso escrito. Los términos
+     están en el archivo LICENCIA-HISTORIA.
+
+Si lo que querés es aprender de un motor WebGPU/WebGL2 sin dependencias, o
+reaprovecharlo: adelante, es tuyo. Si lo que querés es contar esta historia,
+o una derivada de ella: hablalo primero con su autor.
+
+
+================================================================================
+PARTE 1 — EL CÓDIGO (MIT)
+================================================================================
+
+Alcance: todo el código fuente de este repositorio EXCEPTO lo que la Parte 2
+reserva. En concreto: src/nucleo/, src/mundo/, src/reglas/, src/render/,
+src/vista/, src/ui/, src/main.js, src/partida.js, tools/, test/,
+assets/estilos.css e index.html; y, dentro de src/contenido/, la estructura
+de los datos y el código, pero no los textos.
+
 MIT License
 
-Copyright (c) 2026 Javier Arturo Garcia
+Copyright (c) 2026 Javier Arturo García Mineros
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +48,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+================================================================================
+PARTE 2 — LA HISTORIA (todos los derechos reservados)
+================================================================================
+
+Copyright (c) 2026 Javier Arturo García Mineros. Todos los derechos reservados.
+
+Ver el archivo LICENCIA-HISTORIA para el alcance completo y las condiciones.

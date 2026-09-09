@@ -1,5 +1,7 @@
 # 🌄 Monte Adentro
 
+**Un juego de Javier Arturo García Mineros, sobre su propia infancia en el campo.**
+
 **Un niño de seis años que se cría en el campo, y una choza de palma.** No hay
 luz, no hay gas y no hay agua: por agua se va al río. El primer mandado es el
 que fue de verdad —*andá a acarrear agua, ve a buscar leña*— y de ahí no se sale
@@ -178,6 +180,33 @@ a mano desde la pestaña **Actions**) lo deja en
 La partida se guarda en `localStorage`, en el propio navegador. No hay servidor,
 no hay cuenta y no sale nada del dispositivo.
 
-## Licencia
+---
 
-MIT — ver [LICENSE](LICENSE).
+## Autoría y derechos
+
+**Monte Adentro es de Javier Arturo García Mineros.** © 2026.
+
+Esto no es ficción: es su infancia. La choza de palma sin luz ni agua, el primer
+mandado a los seis años —*«andá a acarrear agua, ve a buscar leña»*—, los nueve
+que vivían en esa casa, los garrobos al mediodía. Todo eso pasó, y él lo contó.
+
+El proyecto tiene **licencia doble**, porque el código y la obra no son lo mismo:
+
+| | Licencia | Qué se puede hacer |
+|---|---|---|
+| **El código** — motor WebGPU/WebGL2, reglas, interfaz, empaquetador | MIT | Copiarlo, estudiarlo, modificarlo y usarlo en otros proyectos, también comerciales. Es tuyo, aprovechalo. |
+| **La historia** — capítulos, diálogos, personajes, textos y los recuerdos | Todos los derechos reservados | Jugar y compartir sin modificar, sí. Reutilizar el relato, adaptarlo o venderlo, solo con permiso escrito de su autor. |
+
+Se puede **usar el motor para hacer otro juego con otra historia** sin pedir
+nada a nadie: eso es justamente lo que la parte MIT permite y anima.
+
+👉 [LICENSE](LICENSE) · [LICENCIA-HISTORIA](LICENCIA-HISTORIA) · [AUTORIA.md](AUTORIA.md)
+
+**Para citarlo:**
+
+> García Mineros, Javier Arturo. *Monte Adentro* (2026).
+> https://github.com/javierarturogarcia-max/monte-adentro
+
+El código lo escribió Claude (Anthropic) programando bajo su dirección: él pidió
+el juego, dio la historia y corrigió lo que no se parecía a como fue. Los commits
+lo dejan dicho. Lo que es suyo es la obra, y eso no se lo discute nadie.

@@ -1,0 +1,64 @@
+                    MONTE ADENTRO — LA HISTORIA
+                   Todos los derechos reservados
+
+Copyright (c) 2026 Javier Arturo García Mineros.
+Todos los derechos reservados.
+
+
+QUÉ CUBRE ESTA RESERVA
+
+Todo el contenido narrativo de Monte Adentro. En concreto, y donde quiera que
+aparezca en el repositorio, en el juego empaquetado o en cualquier copia:
+
+  - Los capítulos: sus títulos, sus subtítulos, sus consejos y su orden
+    (src/contenido/capitulos.js).
+  - Los diálogos y todo lo que dice cualquier personaje
+    (src/contenido/dialogos.js y los diálogos dentro de los capítulos).
+  - Los personajes: quiénes son, cómo se llaman y qué lugar ocupan en la casa
+    (PERSONAJES en capitulos.js y FAMILIA en src/reglas/familia.js).
+  - Los nombres y las descripciones de los objetos, las recetas, las plantas,
+    los animales, los cultivos y las construcciones: el texto, no la
+    estructura de datos que lo contiene.
+  - Los ocho niveles del rancho como relato de una vida: sus nombres, sus
+    descripciones y las edades que marcan.
+  - docs/RECUERDOS.md y cualquier recuerdo, testimonio o material biográfico
+    que el autor haya volcado o vuelque en el futuro en este proyecto.
+  - El nombre «Monte Adentro» y la identidad visual del juego.
+
+
+POR QUÉ
+
+Porque no es ficción. Monte Adentro cuenta la infancia real de Javier Arturo
+García Mineros: la choza de palma sin luz ni agua, el primer mandado a los
+seis años, los nueve que vivían en esa casa, los garrobos al mediodía. Una
+vida no se licencia como se licencia una biblioteca de software.
+
+
+QUÉ SE PUEDE HACER SIN PEDIR PERMISO
+
+  - Jugar al juego, todas las veces que se quiera, gratis.
+  - Leer el código, estudiarlo y aprender de él.
+  - Compartir el enlace o el archivo del juego sin modificarlo, sin cobrar
+    por él y manteniendo esta autoría a la vista.
+  - Citar fragmentos breves para comentario, crítica, reseña, docencia o
+    investigación, nombrando al autor y a la obra.
+  - Usar el motor y el código para hacer OTRO juego, con OTRA historia. Eso
+    es exactamente lo que la licencia MIT de la Parte 1 permite y anima.
+
+
+QUÉ HACE FALTA PERMISO ESCRITO PARA HACER
+
+  - Reutilizar los textos, los personajes, los diálogos o el relato en otra
+    obra, sea comercial o no.
+  - Publicar una versión modificada que conserve esta historia.
+  - Traducir, adaptar, novelar, filmar o dramatizar la historia.
+  - Vender el juego o cobrar por el acceso a él.
+  - Entrenar modelos con este contenido narrativo.
+  - Usar el nombre «Monte Adentro» para otra obra.
+
+
+CÓMO PEDIRLO
+
+Abriendo un issue en https://github.com/javierarturogarcia-max/monte-adentro
+o escribiendo al autor. Se responde: la reserva no está para decir que no,
+está para que sea él quien decida.

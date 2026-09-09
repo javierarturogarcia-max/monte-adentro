@@ -1,4 +1,18 @@
 <title>Monte Adentro</title>
+<!--
+  Monte Adentro — un juego de Javier Arturo García Mineros, sobre su propia infancia en el campo.
+
+  © 2026 Javier Arturo García Mineros.
+
+  LA HISTORIA (capitulos, dialogos, personajes, textos y los recuerdos en que
+  se basan) es obra suya: TODOS LOS DERECHOS RESERVADOS. No se reutiliza, no
+  se adapta y no se vende sin su permiso escrito.
+
+  EL CODIGO (motor grafico, reglas, interfaz) es libre bajo licencia MIT.
+
+  Condiciones completas: https://github.com/javierarturogarcia-max/monte-adentro
+-->
+<meta name="author" content="Javier Arturo García Mineros">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -438,8 +452,14 @@ html, body {
   font-family: var(--j-titulo); font-size: 16px; color: var(--j-hueso-2);
   line-height: 1.7; max-width: 46ch; text-wrap: pretty;
 }
+/* La firma: quien escribio esta historia, debajo del lema y antes de jugar. */
+#portada .firma {
+  font-family: var(--j-titulo); font-size: 13px; font-style: italic;
+  color: var(--j-maiz); margin: -4px 0 2px; letter-spacing: 0.01em;
+}
 #portada .acciones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
 #portada .pie { font-size: 11px; color: #6b6055; margin-top: 12px; line-height: 1.7; }
+#portada .pie.derechos { margin-top: 4px; max-width: 54ch; opacity: 0.85; }
 #portada .campo {
   display: flex; align-items: center; gap: 9px; padding: 9px 14px; border-radius: 999px;
   background: rgba(246, 239, 227, 0.07); border: 1px solid var(--j-borde);
@@ -10002,8 +10022,14 @@ class Paneles {
         boton('Empezar de nuevo', { clase: 'fantasma', alPulsar: () => this.acciones.alReiniciar?.() }),
       ]),
       el('div', { clase: 'nota', estilo: 'margin-top:18px' }, [el('span', {
-        texto: 'Teclas: WASD moverse · Shift correr · C agacharse · E interactuar · Espacio acción · I canasta · J diario · Esc pausa. También funciona con mando y con el dedo.',
+        texto: 'Teclas: WASD moverse · Shift correr · C agacharse · E interactuar · Espacio acción · R rancho · I canasta · J diario · Q mapa · Esc pausa. También funciona con mando y con el dedo.',
       })]),
+      // La autoria, donde cualquiera que juegue pueda verla.
+      el('div', { clase: 'nota', estilo: 'margin-top:14px;padding-top:12px;border-top:1px solid var(--j-borde)' }, [
+        el('div', { estilo: 'color:var(--j-maiz);margin-bottom:4px', texto: 'Monte Adentro' }),
+        el('div', { texto: 'Un juego de Javier Arturo García Mineros, sobre su propia infancia en el campo.' }),
+        el('div', { estilo: 'margin-top:4px', texto: '© 2026 Javier Arturo García Mineros. La historia, los personajes, los diálogos y los textos son obra suya: todos los derechos reservados. El motor y el código son libres bajo licencia MIT.' }),
+      ]),
     );
   }
 
@@ -11609,6 +11635,7 @@ function iniciarJuego(raiz) {
         el('div', { estilo: 'font-size:44px;line-height:1' , texto: '🌄' }),
         el('h1', { texto: 'Monte Adentro' }),
         el('p', { clase: 'lema', texto: 'Un niño del campo, un río que hay que subir a cántaros, una milpa que no perdona el olvido y un monte que da de comer al que aprende a mirarlo.' }),
+        el('p', { clase: 'firma', texto: 'Un juego de Javier Arturo García Mineros, sobre su propia infancia.' }),
         el('div', { clase: 'campo' }, [el('span', { texto: '🧒' }), entrada]),
         el('div', { clase: 'acciones' }, [
           guardada ? boton(`Seguir — día ${guardada.dia}, ${nombreFecha(guardada.dia)}`, {
@@ -11630,10 +11657,12 @@ function iniciarJuego(raiz) {
           el('span', { texto: 'C agacharse' }),
           el('span', { texto: 'E interactuar' }),
           el('span', { texto: 'Espacio acción' }),
-          el('span', { texto: 'I canasta · J diario' }),
+          el('span', { texto: 'R el rancho' }),
+          el('span', { texto: 'I canasta · J diario · Q mapa' }),
           el('span', { texto: 'Arrastrar para mirar' }),
         ]),
         el('div', { clase: 'pie', texto: 'En el móvil se juega con el dedo: palanca a la izquierda, botones a la derecha. También funciona con mando. Todo se guarda en tu dispositivo.' }),
+        el('div', { clase: 'pie derechos', texto: '© 2026 Javier Arturo García Mineros. La historia, los personajes y los textos son obra suya, con todos los derechos reservados. El motor es código abierto (MIT).' }),
       ]),
     ]);
     contenedor.appendChild(capa);

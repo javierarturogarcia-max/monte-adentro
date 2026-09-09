@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "Juego 3D de superacion en el campo: un nino aprende a cazar, pescar, sembrar su milpa y traer agua y lena a una casa sin luz ni agua corriente. Motor propio WebGPU/WebGL2, sin dependencias ni archivos de arte.",
   "type": "module",
-  "license": "MIT",
+  "author": "Javier Arturo Garc\u00eda Mineros",
+  "license": "SEE LICENSE IN LICENSE",
   "private": true,
+  "repository": { "type": "git", "url": "https://github.com/javierarturogarcia-max/monte-adentro.git" },
+  "homepage": "https://github.com/javierarturogarcia-max/monte-adentro#readme",
   "scripts": {
     "dev": "node tools/servidor.mjs",
     "test": "node --test test/*.test.js",

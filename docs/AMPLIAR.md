@@ -1,5 +1,11 @@
 # Cómo ampliar Monte Adentro
 
+> El **código** de este proyecto es libre (MIT): tomalo y hacé lo que quieras
+> con él. La **historia** —capítulos, diálogos, personajes y textos— es obra de
+> Javier Arturo García Mineros y está reservada: para reutilizarla hace falta su
+> permiso. Ver [AUTORIA.md](../AUTORIA.md). Esta guía sirve para las dos cosas:
+> para ampliar *este* juego, y para hacer *otro* con el mismo motor.
+
 **Un niño que se cría en el campo.** Aprende a cazar, a pescar, a rebuscar en el
 monte, a sembrar su milpa y a traer agua y leña a una casa donde no hay luz ni
 tubería. Cada día que la casa tiene lo que necesita cuenta; cada cosa que
