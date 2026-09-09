@@ -149,7 +149,8 @@ export class Mundo3D {
     this.yCasa = t.altura(casa.x, casa.z);
     this.lotesChoza = {};
     this.nivelChoza = 0;
-    this.loteGallinero = esc.lote('gallinero', MOD.gallinero(), { capacidad: 2 });
+    // Estatico por lo mismo que la choza: solo cambia al terminar una obra.
+    this.loteGallinero = esc.lote('gallinero', MOD.gallinero(), { estatico: true, capacidad: 2 });
     const fog = LUGARES.fogon;
     this.yFogon = t.altura(fog.x, fog.z);
     esc.lote('fogon', MOD.fogon(), { estatico: true })
@@ -205,7 +206,13 @@ export class Mundo3D {
     const n = Math.max(1, Math.min(8, nivel | 0));
     for (const lote of Object.values(this.lotesChoza)) lote.reiniciar();
     if (!this.lotesChoza[n]) {
-      this.lotesChoza[n] = this.escena.lote(`choza_${n}`, MOD.choza(n), { capacidad: 2 });
+      // 'estatico' porque la casa solo cambia cuando se termina una obra: si
+      // no, el barrido de lotes dinamicos la borra en el cuadro siguiente y la
+      // casa desaparece del valle.
+      // 'follaje' porque el techo es de palma: hojas de una sola cara que sin
+      // la bandera de doble cara salen negras desde la mitad de los angulos.
+      this.lotesChoza[n] = this.escena.lote(`choza_${n}`, MOD.choza(n),
+        { estatico: true, capacidad: 2, categoria: 'follaje' });
     }
     const casa = LUGARES.casa;
     this.lotesChoza[n].agregar(
