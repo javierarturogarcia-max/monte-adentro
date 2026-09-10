@@ -1,18 +1,18 @@
 # Publicacion en GitHub Pages.
 #
-# NO se dispara solo: en un repositorio privado y en plan gratuito, Pages no
-# publica, y un flujo que falla en cada empuje solo da ruido. Cuando el
-# repositorio sea publico y Pages este activado (Settings -> Pages -> Source:
-# GitHub Actions), se lanza a mano desde la pestana Actions, o se anade aqui
-# el disparador `push` sobre main.
-#
 # El sitio es estatico y sin dependencias: se publica el repositorio tal cual,
 # asi que el juego queda en <usuario>.github.io/<repo>/ y el archivo unico en
 # <usuario>.github.io/<repo>/dist/monte-adentro.html
+#
+# Se lanza solo en cada empuje a main, y tambien a mano desde la pestana
+# Actions. Antes de publicar corre las pruebas: si el juego esta roto, no se
+# sube.
 
 name: Publicar en GitHub Pages
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -45,6 +45,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+        with:
+          # Activa Pages por API si todavia no lo esta, para no tener que ir a
+          # Settings a mano. Necesita el permiso `pages: write` de arriba.
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
