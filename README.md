@@ -168,10 +168,19 @@ juego toca cada cosa que se cuente.
 
 ## Publicarlo en internet
 
-El sitio es estático. Con el repositorio en público y *Settings → Pages →
-Source: GitHub Actions*, el flujo `.github/workflows/paginas.yml` (que se lanza
-a mano desde la pestaña **Actions**) lo deja en
-`https://<usuario>.github.io/monte-adentro/`.
+El sitio es estático y todas sus rutas son relativas, así que se publica tal
+cual, sin compilar nada.
+
+**Una sola vez:** *Settings → Pages → Source: **GitHub Actions***. Esa
+activación no se puede automatizar: el `GITHUB_TOKEN` de un flujo puede
+publicar en Pages, pero no puede *crear* el sitio.
+
+A partir de ahí, `.github/workflows/paginas.yml` lo publica solo en cada empuje
+a `main` —corriendo antes las pruebas, para no subir un juego roto— y queda en:
+
+- `https://<usuario>.github.io/monte-adentro/` — el juego
+- `https://<usuario>.github.io/monte-adentro/dist/monte-adentro.html` — el
+  archivo único, para descargar y jugar sin conexión
 
 ---
 

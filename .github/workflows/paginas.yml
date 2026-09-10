@@ -7,6 +7,17 @@
 # Se lanza solo en cada empuje a main, y tambien a mano desde la pestana
 # Actions. Antes de publicar corre las pruebas: si el juego esta roto, no se
 # sube.
+#
+# ANTES DEL PRIMER USO hay que activar Pages a mano, una sola vez:
+#   Settings -> Pages -> Source: GitHub Actions
+# No se puede automatizar. El GITHUB_TOKEN del flujo tiene `pages: write`, que
+# sirve para PUBLICAR, pero CREAR el sitio pide permisos de administracion del
+# repositorio que ese token nunca tiene: falla con "Create Pages site failed:
+# Resource not accessible by integration". Una vez activado, esto ya va solo
+# para siempre.
+#
+# Todas las rutas del juego son relativas (./src, ./assets), asi que funciona
+# igual servido desde <usuario>.github.io/monte-adentro/ que desde la raiz.
 
 name: Publicar en GitHub Pages
 
@@ -46,8 +57,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
         with:
-          # Activa Pages por API si todavia no lo esta, para no tener que ir a
-          # Settings a mano. Necesita el permiso `pages: write` de arriba.
+          # Si Pages ya esta activado, este paso solo lo consulta y sigue. Si
+          # no lo esta, intenta crearlo y falla (ver la nota de arriba): la
+          # primera activacion es manual. Se deja en true porque no estorba y
+          # porque funciona si algun dia se lanza con un token con permisos.
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
